@@ -28,7 +28,10 @@ body {
   background: #000;
   cursor: none;
   scrollbar-color: rgba(255, 255, 255, .15) transparent;
-  
+}
+@media (pointer: coarse) {
+  body { cursor: auto; }
+  #cur, #cur-ring { display: none; }
 }
 #s-home-wrapper, #s-work, #s-contact {
   overflow-x: clip;
