@@ -112,7 +112,7 @@ const CFG = {
   rings  : { count: IS_LOW_END ? 4 : 5, pointsPerRing: IS_LOW_END ? 1_200 : 2_000, radius: 7.5, thickness: 0.6 },
   stars  : { count: IS_LOW_END ? 3_000 : 6_000, spread: 50_000 },
   bloom  : { strength: IS_LOW_END ? 0.8 : 1.2, threshold: 0, radius: 0.5 },
-  dpr    : Math.min(devicePixelRatio, 1),
+  dpr    : Math.min(devicePixelRatio, 2),
   explode: { duration: 2_000 },
 };
 const CAM = { FAR_Z: 28, NEAR_Z: 15, SPIRAL_Z: 3.5, Y: 5, HERO_X: -10 };
@@ -435,7 +435,7 @@ const spiral = (() => {
     S.faceStrength = m ? 32 : 48;
   }, { passive: true });
 
-  // СТАЛО
+  
 let camX = 0, camY = 0, scrollT = 0, prevFrontIdx = -1;
 const hoverScale = new Array(N).fill(1);
 const smoothHover = new Array(N).fill(1);
@@ -502,7 +502,7 @@ cards.forEach((card, i) => {
           ? lerp(S.backOpacityMin, .55, facing / S.backThreshold)
           : lerp(S.frontOpacityMin, 1, (facing - S.backThreshold) / (1 - S.backThreshold));
         
-        // СТАЛО
+     
 const baseScale = lerp(.84, 1.03, Math.pow(facing, 1.9));
 smoothHover[i] = lerpDt(smoothHover[i], hoverScale[i], 0.12, dt);
 const scale = baseScale * smoothHover[i];
@@ -638,77 +638,74 @@ const scale = baseScale * smoothHover[i];
 const PROJECTS = [
   {
     title: 'Do you',
-    subtitle: 'Immersive Art Space · Zurich 2025',
-    tags: ['Projection Mapping', '3D Environments', 'Camera Tracking'],
-    desc: 'Real-time Unreal Engine setup with virtual camera tracking and projection mapping. Developed for an immersive art installation in Zurich featuring live performance and generative visuals.',
-    meta: '<strong>Role:</strong> Virtual Production Operator, Intern<br><strong>Tools:</strong> Unreal Engine 5, disguise<br><strong>Year:</strong> 2025',
+    subtitle: 'Music Video · Zurich 2024',
+    tags: ['Production', 'Motion Graphics', 'Projection Mapping'],
+    desc: 'Visual concept development, motion graphics, and on-set visual direction for a music video.',
+    meta: '<strong>Role:</strong> Visual Designer <br><strong>Tools:</strong> Touchdesigner, After Effects,  MadMapper <br><strong>Year:</strong> 2024',
     images: [
       { type: 'video', src: 'https://res.cloudinary.com/dtzuydpci/video/upload/v1774359760/Doyou_kd0xsh.mp4' },
     ]
   },
   {
-    title: 'Teddy',
-    subtitle: 'Official Music Video · Zurich 2024',
-    tags: ['Generative patterns', 'Projection Mapping', 'Production'],
-    desc: 'Visual concept development, motion graphics, and on-set visual direction for a music video.',
-    meta: '<strong>Role:</strong> Creative Developer<br><strong>Tools:</strong>Touchdesigner, After Effects,  Madmapper<br><strong>Year:</strong> 2024',
+    title: 'Nightfall',
+    subtitle: 'Short Movie · Zurich 2026',
+    tags: ['Virtual Production', '3D Environments', '3D Animation'],
+    desc: '0',
+    meta: '<strong>Role:</strong> Virtual Production Operator<br><strong>Tools:</strong> Unreal Engine, Blender<br><strong>Year:</strong> 2026',
     images: [
+      { type: 'video', src: 'https://res.cloudinary.com/dtzuydpci/video/upload/v1774533662/Teddy_Sort_Cut_jrkqu6.mp4' },
       { type: 'img', src: 'https://res.cloudinary.com/dtzuydpci/image/upload/v1774629013/teddy_5_cdzyyr.png' },
       { type: 'img', src: 'https://res.cloudinary.com/dtzuydpci/image/upload/v1774629011/teddy_3_hhhayj.png' },
-      { type: 'img', src: 'https://res.cloudinary.com/dtzuydpci/image/upload/v1774629011/teddy_1_yn5if9.png' },
       { type: 'img', src: 'https://res.cloudinary.com/dtzuydpci/image/upload/v1774629010/teddy_2_xcx74i.png' },
     ]
   },
   {
-    title: 'rock your kidney',
-    subtitle: 'Immersive Art Space · Zurich 2025',
-    tags: ['Projection Mapping', '3D Environments', 'Camera Tracking'],
-    desc: 'Real-time Unreal Engine setup with virtual camera tracking and projection mapping. Developed for an immersive art installation in Zurich featuring live performance and generative visuals.',
-    meta: '<strong>Role:</strong> Virtual Production Operator, Intern<br><strong>Tools:</strong> Unreal Engine 5, disguise<br><strong>Year:</strong> 2025',
+    title: 'Rohschnitt',
+    subtitle: 'Short Movie · Zurich 2025',
+    tags: ['Virtual Production', 'VFX','3D Environments'],
+    desc: '0',
+    meta: '<strong>Role:</strong> Virtual Production Operator<br><strong>Tools:</strong> Unreal Engine, Blender<br><strong>Year:</strong> 2025',
     images: [
-      { type: 'img', src: 'https://res.cloudinary.com/dtzuydpci/image/upload/v1774629039/rock_1_cplsbj.png' },
-      { type: 'img', src: 'https://res.cloudinary.com/dtzuydpci/image/upload/v1774629040/rock_4_ctrrqu.png' },
+      { type: 'video', src: 'https://res.cloudinary.com/dtzuydpci/video/upload/v1774457995/Rohschnitt_01_hvdmcb.mp4' },
       { type: 'img', src: 'https://res.cloudinary.com/dtzuydpci/image/upload/v1774629041/rock_2_sag9tx.png' },
+      { type: 'img', src: 'https://res.cloudinary.com/dtzuydpci/image/upload/v1774629040/rock_4_ctrrqu.png' },
       { type: 'img', src: 'https://res.cloudinary.com/dtzuydpci/image/upload/v1774629039/rock_3_fd4wae.png' },
     ]
   },
   {
-    title: 'cyber passage',
-    subtitle: 'Virtual Production · 2024',
-    tags: ['Unreal Engine', 'Color Grading', 'Lighting'],
-    desc: 'Clinical LED wall environment with depth of field and colour grading pipeline for virtual production.',
-    meta: '<strong>Role:</strong> Environment & Lighting Artist<br><strong>Tools:</strong> Unreal Engine 5, DaVinci<br><strong>Year:</strong> 2024',
+    title: 'Spinnen',
+    subtitle: 'Performance · Zurich 2025',
+    tags: ['0', '0', '0'],
+    desc: 'Designed and operated real-time audio-reactive visuals for a live performance of Spinnen, composed by Luis Escobar. Built a signal pipeline in TouchDesigner that mapped microphone inputs directly to visual parameters — solely responsible for the visual concept and its technical execution.',
+    meta: '<strong>Role:</strong> Visual Designer & Technical Operator<br><strong>Tools:</strong> TouchDesigner<br><strong>Year:</strong> 2025',
     images: [
-      { type: 'video', src: 'https://res.cloudinary.com/dtzuydpci/video/upload/v1774356903/Cyber_Passage-05_gi9ujg.mp4' },
-      { type: 'img', src: 'https://res.cloudinary.com/dtzuydpci/image/upload/v1774356768/Cyber_Passage-10_oldama.jpg' },
-      { type: 'img', src: 'https://res.cloudinary.com/dtzuydpci/image/upload/v1774356779/Cyber_Passage-02_zqjat6.png' },
-      { type: 'img', src: 'https://i-p.rmcdn.net/619d2b5322f258001999020d/4640512/image-d46d9c9c-559e-4425-9f7e-e46af6dc142e.jpg?w=1200&e=webp' },
+      { type: 'video', src: 'https://res.cloudinary.com/dtzuydpci/video/upload/v1774791413/Spinnen_Final_V1_3_warebk.mp4' },
+     ]
+  },
+  {
+    title: 'Ego',
+    subtitle: 'Interactive Exhibition · Zurich 2025',
+    tags: ['0', '0', '0'],
+    desc: '0',
+    meta: '<strong>Role:</strong> 0 <br><strong>Tools:</strong> TouchDesigner, MAX, MadMapper<br><strong>Year:</strong> 2025',
+    images: [
+      { type:  'video', src: 'https://res.cloudinary.com/dtzuydpci/video/upload/v1774364599/Ego-Interactive_exhibitions_03_uwlahp.mp4' },
+      { type: 'img', src: 'https://res.cloudinary.com/dtzuydpci/image/upload/v1774362552/Ego-Interactive_exhibitions_02_xi8owc.jpg' },
+      { type: 'img', src: 'https://res.cloudinary.com/dtzuydpci/image/upload/v1774970165/SI5A6850-min_zrwc5w.jpg' },
+      { type: 'img', src: 'https://res.cloudinary.com/dtzuydpci/image/upload/v1774362554/Ego-Interactive_exhibitions_03_ypxvcl.jpg' },
     ]
   },
   {
     title: 'Dream of war',
-    subtitle: 'Web Design · 2024',
-    tags: ['Web Design', 'Motion', 'Readymag'],
-    desc: 'Interactive portfolio with glassmorphism effects and WebGL particle backgrounds.',
-    meta: '<strong>Role:</strong> Designer & Developer<br><strong>Tools:</strong> Readymag, Three.js<br><strong>Year:</strong> 2024',
+    subtitle: 'VR Game · Prague 2022',
+    tags: ['3D Environments', 'Game Development', '3D Animation'],
+    desc: 'End-to-end VR game development in Unreal Engine. Exhibited at ARTSEMESTR (Prague, 2022), Anifilm (Liberec, 2023), FAMU (Prague, 2023).',
+    meta: '<strong>Role:</strong> Developer <br><strong>Tools:</strong> Unreal Engine, Blender <br><strong>Year:</strong> 2022',
     images: [
+      { type:  'video', src: 'https://res.cloudinary.com/dtzuydpci/video/upload/v1774624717/Dream_Of_War_Short1_csshfe.mp4' },
       { type: 'img', src: 'https://res.cloudinary.com/dtzuydpci/image/upload/v1774363379/Dream_of_war_02_zvxbsg.png' },
       { type: 'img', src: 'https://res.cloudinary.com/dtzuydpci/image/upload/v1774363378/Dream_of_war_04_i845o0.png' },
       { type: 'img', src: 'https://res.cloudinary.com/dtzuydpci/image/upload/v1774363384/Dream_of_war_05_avh3sp.png' },
-      { type: 'video', src: 'https://res.cloudinary.com/dtzuydpci/video/upload/v1774363500/Dream_of_war_03_r2mexb.mp4' },
-    ]
-  },
-  {
-    title: 'Ego',
-    subtitle: 'Project · 2025',
-    tags: ['Coming Soon'],
-    desc: 'Details coming soon.',
-    meta: '<strong>Year:</strong> 2025',
-    images: [
-      { type: 'img', src: 'https://res.cloudinary.com/dtzuydpci/image/upload/v1774362551/Ego-Interactive_exhibitions_01_xkxwj3.png' },
-      { type: 'img', src: 'https://res.cloudinary.com/dtzuydpci/image/upload/v1774362552/Ego-Interactive_exhibitions_02_xi8owc.jpg' },
-      { type: 'img', src: 'https://res.cloudinary.com/dtzuydpci/image/upload/v1774362556/Ego-Interactive_exhibitions_05_z0edv2.png' },
-      { type: 'img', src: 'https://res.cloudinary.com/dtzuydpci/image/upload/v1774362554/Ego-Interactive_exhibitions_03_ypxvcl.jpg' },
     ]
   },
 ];
@@ -737,7 +734,13 @@ function openZoom(projIdx, sourceArr) {
     ? `<video src="${item.src}" autoplay muted loop playsinline></video>`
     : `<img src="${item.src}" alt="${p.title}"/>`
   ).join('');
-  document.getElementById('zoom-grid').innerHTML = allEls;
+  const zoomGrid = document.getElementById('zoom-grid');
+  zoomGrid.innerHTML = allEls;
+  if (p.images.length === 1) {
+    zoomGrid.classList.add('single-image');
+  } else {
+    zoomGrid.classList.remove('single-image');
+  }
   zoomOverlay.classList.add('open');
   zoomOverlay.scrollTop = 0;
   document.body.style.overflow = 'hidden';
@@ -748,6 +751,14 @@ function closeZoom() {
   document.body.style.overflow = '';
   zoomOverlay.scrollTop = 0;
 }
+
+document.getElementById('zoom-grid').addEventListener('click', e => {
+  const target = e.target.closest('img, video');
+  if (!target || target === e.currentTarget.children[0] || e.currentTarget.classList.contains('single-image')) return;
+  // Swap with first child to make it large
+  const first = e.currentTarget.children[0];
+  e.currentTarget.insertBefore(target, first);
+});
 
 
 document.getElementById('zoom-close').addEventListener('click', closeZoom);
@@ -762,6 +773,13 @@ document.addEventListener('touchend', e => {
   e.preventDefault();
   openZoom(parseInt(card.dataset.idx));
 }, { passive: false });
+
+document.addEventListener('click', e => {
+  const card = e.target.closest('.card');
+  if (!card) return;
+  e.preventDefault();
+  openZoom(parseInt(card.dataset.idx));
+});
 
 document.querySelectorAll('.tdot').forEach(dot => dot.addEventListener('click', () => applyTheme(dot.dataset.t)));
 
@@ -784,52 +802,54 @@ sections.forEach(s => new IntersectionObserver(entries => {
 
 const MORE_PROJECTS = [
   {
-  title: 'Portfolio Site',
-  subtitle: 'Web Design · 2025',
-  tags: ['Web Design', 'Motion', 'Readymag'],
-  desc: 'Опис проєкту.',
-  meta: '<strong>Role:</strong> ...<br><strong>Tools:</strong> ...<br><strong>Year:</strong> 2024',
+  title: 'Forever Trashed',
+  subtitle: 'Prague · 2023',
+  tags: ['3D Environments', '3D Animation', '3D Modeling'],
+  desc: '3D asset and level design for a game. Animation of characters and objects.Created for game festivals, presented at FIK, Ústí nad Labem 2023, and Lektvar, Olomouc 2023.',
+  meta: '<strong>Role:</strong> 000<br><strong>Tools:</strong> Blender, Unity <br><strong>Year:</strong> 2023',
   images: [
     { type: 'img', src: 'https://res.cloudinary.com/dtzuydpci/image/upload/v1774537350/forever_trashed4_1_vpay3y.jpg' },
   ],
 },
   {
-  title: 'Portfolio Site',
-  subtitle: 'Web Design · 2025',
-  tags: ['Web Design', 'Motion', 'Readymag'],
-  desc: 'Опис проєкту.',
-  meta: '<strong>Role:</strong> ...<br><strong>Tools:</strong> ...<br><strong>Year:</strong> 2024',
+  title: ' Cyber Passage',
+  subtitle: 'Zurich · 2025',
+  tags: ['3D Environments', 'Camera Tracking', 'Projection Mapping'],
+  desc: 'Real-time Unreal Engine setup with virtual camera tracking and projection mapping aligned to the viewer’s position.',
+  meta: '<strong>Role:</strong> 000 <br><strong>Tools:</strong> Unreal Engine, MAX, MadMapper<br><strong>Year:</strong> 2025',
   images: [
-    { type: 'img', src: 'https://res.cloudinary.com/dtzuydpci/image/upload/v1774363008/Cyber_Passage-12_pvnw3o.jpg' },
-  ],
+      { type: 'video', src: 'https://res.cloudinary.com/dtzuydpci/video/upload/v1774356903/Cyber_Passage-05_gi9ujg.mp4' },
+      { type: 'img', src: 'https://res.cloudinary.com/dtzuydpci/image/upload/v1774356768/Cyber_Passage-10_oldama.jpg' },
+      { type: 'img', src: 'https://res.cloudinary.com/dtzuydpci/image/upload/v1774356779/Cyber_Passage-02_zqjat6.png' },
+      { type: 'img', src: 'https://i-p.rmcdn.net/619d2b5322f258001999020d/4640512/image-d46d9c9c-559e-4425-9f7e-e46af6dc142e.jpg?w=1200&e=webp' },
+    ],
 },
   {
-  title: 'Portfolio Site',
-  subtitle: 'Web Design · 2025',
-  tags: ['Web Design', 'Motion', 'Readymag'],
-  desc: 'Опис проєкту.',
-  meta: '<strong>Role:</strong> ...<br><strong>Tools:</strong> ...<br><strong>Year:</strong> 2024',
+  title: 'Chornozem',
+  subtitle: 'Zurich/Kyiv · 2025',
+  tags: ['0', '0', '0'],
+  desc: '0',
+  meta: '<strong>Role:</strong> 0 <br><strong>Tools:</strong> 0 <br><strong>Year:</strong> 2025',
   images: [
     { type: 'video', src: 'https://res.cloudinary.com/dtzuydpci/video/upload/v1774623951/new_food_-_Trim_aisx11.mp4' },
-    { type: 'img', src: 'https://res.cloudinary.com/dtzuydpci/image/upload/v1774623115/copy_of_kalei_1_ntog2e_8f915b.png' },
   ],
 },
   {
-  title: 'Portfolio Site',
-  subtitle: 'Web Design · 2025',
-  tags: ['Web Design', 'Motion', 'Readymag'],
-  desc: 'Опис проєкту.',
-  meta: '<strong>Role:</strong> ...<br><strong>Tools:</strong> ...<br><strong>Year:</strong> 2024',
+  title: 'Kaleidoscope',
+  subtitle: 'Prague · 2024',
+  tags: ['Unreal Engine','Animation Pipeline', 'Motion Capture'],
+  desc: 'Motion capture recording of a dance performance, edited in MotionBuilder and composed  in Unreal Engine 5.',
+  meta: '<strong>Role:</strong> 000 <br><strong>Tools:</strong>Unreal Engine, Motion Builder<br><strong>Year:</strong> 2024',
   images: [
     { type: 'img', src: 'https://res.cloudinary.com/dtzuydpci/image/upload/v1774624286/Kaleidoscope1_mwmfei.jpg' },
   ],
 },
   {
-  title: 'Portfolio Site',
-  subtitle: 'Web Design · 2025',
-  tags: ['Web Design', 'Motion', 'Readymag'],
-  desc: 'Опис проєкту.',
-  meta: '<strong>Role:</strong> ...<br><strong>Tools:</strong> ...<br><strong>Year:</strong> 2024',
+  title: 'PLUG-IN',
+  subtitle: 'Berlin · 2024',
+  tags: ['Real-Time Visuals', 'Audio-Reactive Systems', 'Generative Graphics'],
+  desc: 'Real-time audio-reactive point cloud visuals in TouchDesigner. Developed for a live performance at BHROX, Berlin, in 2024.',
+  meta: '<strong>Role:</strong> 000 <br><strong>Tools:</strong>TouchDesigner<br><strong>Year:</strong> 2024',
   images: [
     { type: 'img', src: 'https://res.cloudinary.com/dtzuydpci/image/upload/v1774622526/plug_in_3_gibrbh.jpg' },
   ],
