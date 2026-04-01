@@ -770,14 +770,24 @@ document.addEventListener('keydown', e => {
   if (!zoomOverlay.classList.contains('open')) return;
   if (e.key === 'Escape') closeZoom();
 });
+let touchStartX = 0, touchStartY = 0;
+
+document.addEventListener('touchstart', e => {
+  touchStartX = e.touches[0].clientX;
+  touchStartY = e.touches[0].clientY;
+}, { passive: true });
+
 document.addEventListener('touchend', e => {
   const card = e.target.closest('.card');
   if (!card) return;
-  e.preventDefault();
+  const dx = Math.abs(e.changedTouches[0].clientX - touchStartX);
+  const dy = Math.abs(e.changedTouches[0].clientY - touchStartY);
+  if (dx > 8 || dy > 8) return; // це був свайп — ігноруємо
   openZoom(parseInt(card.dataset.idx));
-}, { passive: false });
+}, { passive: true });
 
 document.addEventListener('click', e => {
+  if (isMobile) return; // на мобільному використовуємо тільки touchend
   const card = e.target.closest('.card');
   if (!card) return;
   e.preventDefault();
