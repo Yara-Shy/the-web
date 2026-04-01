@@ -218,9 +218,6 @@ function makeStars({ count, spread }) {
    ───────────────────────────────────────────── */
 const THEMES = {
   nebula: { sphere: [0x00ffff,0xff1493,0x4169e1,0xff69b4,0x00bfff].map(h=>new THREE.Color(h)), rings:(i,tc,j,pc)=>new THREE.Color().setHSL((i/tc)*.6+(j/pc)*.2+.5,.8,.6) },
-  sunset: { sphere: [0xff4500,0xff8c00,0xffd700,0xff0080,0xda70d6].map(h=>new THREE.Color(h)), rings:(i,tc,j,pc)=>new THREE.Color().setHSL((i/tc)*.1+(j/pc)*.1,.9,.7) },
-  forest: { sphere: [0x228b22,0x00ff7f,0x3cb371,0x1e90ff,0x87cefa].map(h=>new THREE.Color(h)), rings:(i,tc,j,pc)=>new THREE.Color().setHSL((i/tc)*.2+(j/pc)*.1+.25,.8,.55) },
-  aurora: { sphere: [0x00ff7f,0x40e0d0,0x483d8b,0x9932cc,0x00fa9a].map(h=>new THREE.Color(h)), rings:(i,tc,j,pc)=>new THREE.Color().setHSL((i/tc)*.3+(j/pc)*.1+.45,.9,.65) },
 };
 
 function applyTheme(name) {
@@ -388,9 +385,9 @@ function computeCameraTarget() {
 
   if (wrapP >= 0.58 && !heroRevealed) {
     heroRevealed = true;
-    document.getElementById('main-nav').classList.add('show');
-    document.getElementById('pg-counter').classList.add('show');
-    document.getElementById('theme-dots').classList.add('show');
+    document.getElementById('main-nav')?.classList.add('show');
+document.getElementById('pg-counter')?.classList.add('show');
+document.getElementById('theme-dots')?.classList.add('show');
     document.querySelectorAll('.hero-reveal').forEach(el => el.classList.add('show'));
     if (!explosionFired) {
       explosionFired = true;
