@@ -352,6 +352,7 @@ let camCurrentZ = CAM.FAR_Z;
 let camTargetX  = 0;
 let camCurrentX = 0;
 let scrollCueGone = false, heroRevealed = false, explosionFired = false;
+// heroRevealed тепер реактивний — відображає поточний стан, а не "чи спрацював колись"
 let sphereAlphaSmooth = 1;
 
 function computeCameraTarget() {
@@ -383,18 +384,28 @@ function computeCameraTarget() {
   camTargetZ = CAM.FAR_Z + (CAM.NEAR_Z - CAM.FAR_Z) * e;
   camTargetX = -6 * e;
 
-  if (wrapP >= 0.58 && !heroRevealed) {
-    heroRevealed = true;
-    document.getElementById('main-nav')?.classList.add('show');
-document.getElementById('pg-counter')?.classList.add('show');
-document.getElementById('theme-dots')?.classList.add('show');
-    document.querySelectorAll('.hero-reveal').forEach(el => el.classList.add('show'));
-    if (!explosionFired) {
-      explosionFired = true;
-      isExploding    = true;
-      explodeStart   = clock.getElapsedTime();
-    }
+  const shouldShowHero = wrapP >= 0.58;
+
+if (shouldShowHero !== heroRevealed) {
+  heroRevealed = shouldShowHero;
+
+  document.getElementById('main-nav')?.classList.toggle('show', shouldShowHero);
+  document.getElementById('pg-counter')?.classList.toggle('show', shouldShowHero);
+  document.getElementById('theme-dots')?.classList.toggle('show', shouldShowHero);
+  document.querySelectorAll('.hero-reveal').forEach(el => el.classList.toggle('show', shouldShowHero));
+
+  if (shouldShowHero && !explosionFired) {
+    explosionFired = true;
+    isExploding    = true;
+    explodeStart   = clock.getElapsedTime();
   }
+
+  // При поверненні вгору — скидаємо explosionFired,
+  // щоб при наступному скролі вниз вибух спрацював знову
+  if (!shouldShowHero) {
+    explosionFired = false;
+  }
+}
 
   // preZoom — між hero і spiral
   if (wrapP > 0.75) {
@@ -640,20 +651,19 @@ const scale = baseScale * smoothHover[i];
 
 const PROJECTS = [
   {
-    title: 'Do you',
-    subtitle: 'Music Video · Zurich 2024',
-    tags: ['Production', 'Motion Graphics', 'Projection Mapping'],
-    desc: 'Visual concept development, motion graphics, and on-set visual direction for a music video.',
-    meta: '<strong>Role:</strong> Visual Designer <br><strong>Tools:</strong> Touchdesigner, After Effects,  MadMapper <br><strong>Year:</strong> 2024',
-    images: [
+    title: 'Do You',
+    subtitle: 'Music Video · Zurich, 2024',
+    tags: ['Stage Visuals', 'Lighting Integration', 'TouchDesigner'],
+    desc: 'Developed and ran a real-time visual system for a music video shoot, combining stage lighting with generative graphics. The visuals were adjusted live on set to match camera movement and performance timing.',
+    meta: '<strong>Role:</strong> Visual Designer <br><strong>Tools:</strong> TouchDesigner, After Effects, MadMapper<br><strong>Year:</strong> 2024',images: [
       { type: 'video', src: 'https://res.cloudinary.com/dtzuydpci/video/upload/v1774359760/Doyou_kd0xsh.mp4' },
     ]
   },
   {
     title: 'Nightfall',
     subtitle: 'Short Movie · Zurich 2026',
-    tags: ['Virtual Production', '3D Environments', '3D Animation'],
-    desc: '0',
+    tags: ['Virtual Production', '3D Environments', '3D Animation', 'Unreal Engine'],
+    desc: 'Operated a real-time Unreal Engine environment during a virtual production shoot. Maintained synchronization between the physical camera and the virtual scene, adjusting lighting, animation, and scene parameters live. Set up and triggered animation cues in sync with the actor’s movement to align virtual events with on-set performance and timing.',
     meta: '<strong>Role:</strong> Virtual Production Operator<br><strong>Tools:</strong> Unreal Engine, Blender<br><strong>Year:</strong> 2026',
     images: [
       { type: 'video', src: 'https://res.cloudinary.com/dtzuydpci/video/upload/v1774533662/Teddy_Sort_Cut_jrkqu6.mp4' },
@@ -665,8 +675,8 @@ const PROJECTS = [
   {
     title: 'Rohschnitt',
     subtitle: 'Short Movie · Zurich 2025',
-    tags: ['Virtual Production', 'VFX','3D Environments'],
-    desc: '0',
+    tags: ['Virtual Production', 'VFX','3D Environments','Unreal Engine', 'Niagara'],
+    desc: 'Built and operated a real-time environment in Unreal Engine for a virtual production shoot. Developed Niagara-based simulations for explosions and sand, and controlled them live on set. Set up animation triggers to align VFX events with the actor’s movement, adjusting timing and behavior during takes.',
     meta: '<strong>Role:</strong> Virtual Production Operator<br><strong>Tools:</strong> Unreal Engine, Blender<br><strong>Year:</strong> 2025',
     images: [
       { type: 'video', src: 'https://res.cloudinary.com/dtzuydpci/video/upload/v1774457995/Rohschnitt_01_hvdmcb.mp4' },
@@ -678,9 +688,9 @@ const PROJECTS = [
   {
     title: 'Spinnen',
     subtitle: 'Performance · Zurich 2025',
-    tags: ['0', '0', '0'],
-    desc: 'Designed and operated real-time audio-reactive visuals for a live performance of Spinnen, composed by Luis Escobar. Built a signal pipeline in TouchDesigner that mapped microphone inputs directly to visual parameters — solely responsible for the visual concept and its technical execution.',
-    meta: '<strong>Role:</strong> Visual Designer & Technical Operator<br><strong>Tools:</strong> TouchDesigner<br><strong>Year:</strong> 2025',
+    tags: ['Audio-Reactive Visuals','Signal Routing', 'Art Direction'],
+    desc: 'Developed a real-time visual system driven by live microphone inputs for the performance “Spinnen” by Luis Escobar. Built a TouchDesigner pipeline that translated audio signals into visual behavior, controlling intensity, movement, and transitions during the performance. Operated the system live, adjusting parameters in response to sound dynamics and performer timing.',
+    meta: '<strong>Role:</strong> Visual Designer, Technical Operator <br><strong>Tools:</strong> TouchDesigner<br><strong>Year:</strong> 2025',
     images: [
       { type: 'video', src: 'https://res.cloudinary.com/dtzuydpci/video/upload/v1774791413/Spinnen_Final_V1_3_warebk.mp4' },
      ]
@@ -688,9 +698,9 @@ const PROJECTS = [
   {
     title: 'Ego',
     subtitle: 'Interactive Exhibition · Zurich 2025',
-    tags: ['0', '0', '0'],
-    desc: '0',
-    meta: '<strong>Role:</strong> 0 <br><strong>Tools:</strong> TouchDesigner, MAX, MadMapper<br><strong>Year:</strong> 2025',
+    tags: ['Live Post-Processing', 'Signal Routing', 'Camera Tracking','TouchDesigner'],
+    desc: 'Built an interactive video pipeline where live camera input was processed in TouchDesigner and projected at room scale. Participant movement was captured and used to drive visual transformations and lighting behavior, creating a feedback loop between the body, image, and space. Presented at Immersive Art Space (Zurich, 2025)',
+    meta: '<strong>Role:</strong> Visual Designer, Technical Operator <br><strong>Tools:</strong> TouchDesigner, MAX, MadMapper<br><strong>Year:</strong> 2025',
     images: [
       { type:  'video', src: 'https://res.cloudinary.com/dtzuydpci/video/upload/v1774364599/Ego-Interactive_exhibitions_03_uwlahp.mp4' },
       { type: 'img', src: 'https://res.cloudinary.com/dtzuydpci/image/upload/v1774362552/Ego-Interactive_exhibitions_02_xi8owc.jpg' },
@@ -701,9 +711,9 @@ const PROJECTS = [
   {
     title: 'Dream of war',
     subtitle: 'VR Game · Prague 2022',
-    tags: ['3D Environments', 'Game Development', '3D Animation'],
-    desc: 'End-to-end VR game development in Unreal Engine. Exhibited at ARTSEMESTR (Prague, 2022), Anifilm (Liberec, 2023), FAMU (Prague, 2023).',
-    meta: '<strong>Role:</strong> Developer <br><strong>Tools:</strong> Unreal Engine, Blender <br><strong>Year:</strong> 2022',
+    tags: ['3D Environments', 'Game Development', '3D Animation','Unreal Engine'],
+    desc: 'Developed a VR experience in Unreal Engine, combining environment design, interaction logic, and real-time animation. Built spatial scenes and user pathways, focusing on navigation, pacing, and immersion. Presented at Anifilm (Liberec, 2023), FAMU (Prague, 2023), and UMPRUM ARTSEMESTR (Prague, 2022).',
+    meta: '<strong>Role:</strong> Environment Artist, Developer <br><strong>Tools:</strong> Unreal Engine, Blender <br><strong>Year:</strong> 2022',
     images: [
       { type:  'video', src: 'https://res.cloudinary.com/dtzuydpci/video/upload/v1774624717/Dream_Of_War_Short1_csshfe.mp4' },
       { type: 'img', src: 'https://res.cloudinary.com/dtzuydpci/image/upload/v1774363379/Dream_of_war_02_zvxbsg.png' },
@@ -797,13 +807,7 @@ document.addEventListener('click', e => {
 document.querySelectorAll('.tdot').forEach(dot => dot.addEventListener('click', () => applyTheme(dot.dataset.t)));
 
 const sections  = ['s-home','s-work','s-about','s-contact'].map(id => document.getElementById(id));
-const pgCurEl   = document.getElementById('pg-cur');
-sections.forEach(s => new IntersectionObserver(entries => {
-  entries.forEach(e => {
-    if (e.isIntersecting)
-      pgCurEl.textContent = String(sections.indexOf(e.target)+1).padStart(2,'0');
-  });
-}, { threshold: .3 }).observe(s));
+
 
 /* ─────────────────────────────────────────────
     MORE WORK CAROUSEL  
@@ -817,19 +821,22 @@ const MORE_PROJECTS = [
   {
   title: 'Forever Trashed',
   subtitle: 'Prague · 2023',
-  tags: ['3D Environments', '3D Animation', '3D Modeling'],
-  desc: '3D asset and level design for a game. Animation of characters and objects.Created for game festivals, presented at FIK, Ústí nad Labem 2023, and Lektvar, Olomouc 2023.',
-  meta: '<strong>Role:</strong> 000<br><strong>Tools:</strong> Blender, Unity <br><strong>Year:</strong> 2023',
+  tags: ['3D Environments', '3D Animation', '3D Modeling','Unity'],
+  desc: 'Designed and built a game environment, including 3D assets, level structure, and character/object animations. Focused on spatial composition, gameplay flow, and visual coherence across the scene. Presented at FIK (Ústí nad Labem, 2023) and Lektvar (Olomouc, 2023).',
+  meta: '<strong>Role:</strong> Environment & 3D Artist <br><strong>Tools:</strong> Blender, Unity <br><strong>Year:</strong> 2023',
   images: [
     { type: 'img', src: 'https://res.cloudinary.com/dtzuydpci/image/upload/v1774537350/forever_trashed4_1_vpay3y.jpg' },
+    { type: 'img', src: 'https://res.cloudinary.com/dtzuydpci/image/upload/v1774535643/forever_trashed5_zg6oit.jpg' },
+    { type: 'video', src: 'https://res.cloudinary.com/dtzuydpci/video/upload/v1774535804/forever_ode02z.mp4' },
+    { type: 'img', src: 'https://res.cloudinary.com/dtzuydpci/image/upload/v1775569758/copy_of_forever_trashed3_dzljnn_daf60c.png' },
   ],
 },
   {
-  title: ' Cyber Passage',
-  subtitle: 'Zurich · 2025',
-  tags: ['3D Environments', 'Camera Tracking', 'Projection Mapping'],
-  desc: 'Real-time Unreal Engine setup with virtual camera tracking and projection mapping aligned to the viewer’s position.',
-  meta: '<strong>Role:</strong> 000 <br><strong>Tools:</strong> Unreal Engine, MAX, MadMapper<br><strong>Year:</strong> 2025',
+  title: 'Cyber Passage',
+  subtitle: 'Installation · Zurich, 2025',
+  tags: ['Real-time Environments', 'Camera Tracking', 'Projection Mapping', 'Unreal Engine'],
+  desc: 'Built and operated a real-time Unreal Engine setup combining virtual camera tracking and projection mapping. Aligned virtual perspective with the viewer’s position, adjusting scene and projection parameters to maintain spatial coherence as the viewpoint shifted. Presented at Immersive Art Space (Zurich, 2025).',
+  meta: '<strong>Role:</strong> Visual Designer & Tracking Setup <br><strong>Tools:</strong> Unreal Engine, Blender, Max/MSP, MadMapper<br><strong>Year:</strong> 2025',
   images: [
       { type: 'video', src: 'https://res.cloudinary.com/dtzuydpci/video/upload/v1774356903/Cyber_Passage-05_gi9ujg.mp4' },
       { type: 'img', src: 'https://res.cloudinary.com/dtzuydpci/image/upload/v1774356768/Cyber_Passage-10_oldama.jpg' },
@@ -839,30 +846,38 @@ const MORE_PROJECTS = [
 },
   {
   title: 'Chornozem',
-  subtitle: 'Zurich/Kyiv · 2025',
-  tags: ['0', '0', '0'],
-  desc: '0',
-  meta: '<strong>Role:</strong> 0 <br><strong>Tools:</strong> 0 <br><strong>Year:</strong> 2025',
+  subtitle: 'Startup Project · Zurich/Kyiv, 2025',
+  tags: ['Research Visualization', 'Visual Communication & Production'],
+  desc: 'Visual communication for a research startup developing soil contamination detection tools. Shaped how the project is presented across pitches, exhibitions, and public platforms, producing video, graphics, and spatial materials that translate scientific data into clear narratives. The project received multiple international recognitions, including 1st Place at Falling Walls Lab Switzerland and Overall Winner at BioDesign Challenge 2025.',
+  meta: '<strong>Role:</strong> Visual Communication & Production <br><strong>Tools:</strong> Adobe Suite, Blender <br><strong>Year:</strong> 2025',
   images: [
-    { type: 'video', src: 'https://res.cloudinary.com/dtzuydpci/video/upload/v1774623951/new_food_-_Trim_aisx11.mp4' },
+    { type: 'video', src: 'https://res.cloudinary.com/dtzuydpci/video/upload/v1774623472/CHORNOZEM2-_Agrifood_-_New_Food_Summit_2025_5_b2k8fw.mp4'}, 
+    { type: 'img', src: 'https://res.cloudinary.com/dtzuydpci/image/upload/v1775567933/1Q6A2657-2_f7jwxe.png'}, 
+    { type: 'img', src: 'https://res.cloudinary.com/dtzuydpci/image/upload/v1775569392/ecoside-v2_rss0kb.jpg' },
+    { type: 'img', src: 'https://res.cloudinary.com/dtzuydpci/image/upload/v1775569035/_0006100_rtlfx0.png' },
+    
   ],
 },
-  {
+   {
   title: 'Kaleidoscope',
-  subtitle: 'Prague · 2024',
-  tags: ['Unreal Engine','Animation Pipeline', 'Motion Capture'],
-  desc: 'Motion capture recording of a dance performance, edited in MotionBuilder and composed  in Unreal Engine 5.',
-  meta: '<strong>Role:</strong> 000 <br><strong>Tools:</strong>Unreal Engine, Motion Builder<br><strong>Year:</strong> 2024',
+  subtitle: 'Installation · Prague, 2024',
+  tags: ['Animation Pipeline', 'Motion Capture', 'Unreal Engine'],
+  desc: 'Captured motion data from a dance performance and processed it through a pipeline in MotionBuilder and Unreal Engine 5, refining timing and integrating the animation into a real-time 3D scene.',
+  meta: '<strong>Role:</strong> Visual Designer <br><strong>Tools:</strong>Unreal Engine, Motion Builder<br><strong>Year:</strong> 2024',
   images: [
     { type: 'img', src: 'https://res.cloudinary.com/dtzuydpci/image/upload/v1774624286/Kaleidoscope1_mwmfei.jpg' },
+    { type: 'video', src: 'https://res.cloudinary.com/dtzuydpci/video/upload/v1775568809/21_March_2024_-_ROTATE_-_Videobolt.net_xvdeg6.mp4'}, 
+    { type: 'img', src: 'https://res.cloudinary.com/dtzuydpci/image/upload/v1774623115/copy_of_kalei_1_ntog2e_8f915b.png' },
+    { type: 'img', src: 'https://res.cloudinary.com/dtzuydpci/image/upload/v1775568514/Kaleidoscope4_vgwkqr.jpg' },
+   
   ],
 },
   {
   title: 'PLUG-IN',
-  subtitle: 'Berlin · 2024',
-  tags: ['Real-Time Visuals', 'Audio-Reactive Systems', 'Generative Graphics'],
-  desc: 'Real-time audio-reactive point cloud visuals in TouchDesigner. Developed for a live performance at BHROX, Berlin, in 2024.',
-  meta: '<strong>Role:</strong> 000 <br><strong>Tools:</strong>TouchDesigner<br><strong>Year:</strong> 2024',
+  subtitle: 'Installation · Berlin, 2024',
+  tags: ['Audio-Reactive Visuals', 'Signal Routing', 'TouchDesigner'],
+  desc: 'Developed an interactive installation combining spatial audio and generative visuals. Sensors placed in the space captured participant movement, driving changes in audio, which in turn influenced the visual system. Built and tuned the signal flow between input, sound, and graphics to maintain a coherent real-time response during interaction. Exhibited at BHROX, Berlin, in 2024.',
+  meta: '<strong>Role:</strong> Visual Designer, Technical Operator <br><strong>Tools:</strong>TouchDesigner<br><strong>Year:</strong> 2024',
   images: [
     { type: 'img', src: 'https://res.cloudinary.com/dtzuydpci/image/upload/v1774622526/plug_in_3_gibrbh.jpg' },
   ],
@@ -954,3 +969,12 @@ mCarousel.innerHTML = MORE_PROJECTS.map((p, i) => {
     openZoom(parseInt(slide.dataset.idx), MORE_PROJECTS);
   });
 }
+document.getElementById('copyEmail').addEventListener('click', function() {
+    navigator.clipboard.writeText('yaroslava.shylyk@outlook.com').then(() => {
+      const t = document.getElementById('emailText');
+      t.textContent = 'copied!';
+      setTimeout(() => { t.textContent = 'yaroslava.shylyk@outlook.com'; }, 2000);
+    }).catch(() => {
+      document.getElementById('emailText').textContent = 'yaroslava.shylyk@outlook.com';
+    });
+  });
