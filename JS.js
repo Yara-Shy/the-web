@@ -106,9 +106,7 @@ const loaderTick = setInterval(() => {
 /* ─────────────────────────────────────────────
    CONFIG
    ───────────────────────────────────────────── */
-const IS_MOBILE_DEVICE =
-  /Mobi|Android|iPhone|iPad/i.test(navigator.userAgent) ||
-  window.innerWidth <= 768;
+const IS_MOBILE_DEVICE = /Mobi|Android|iPhone|iPad/i.test(navigator.userAgent);
 const DESKTOP_IS_LOW_END = !IS_MOBILE_DEVICE && navigator.hardwareConcurrency <= 2;
 const IS_LOW_END = IS_MOBILE_DEVICE || DESKTOP_IS_LOW_END;
 const CFG = {
