@@ -106,7 +106,9 @@ const loaderTick = setInterval(() => {
 /* ─────────────────────────────────────────────
    CONFIG
    ───────────────────────────────────────────── */
-const IS_MOBILE_DEVICE = /Mobi|Android|iPhone|iPad/i.test(navigator.userAgent);
+const IS_MOBILE_DEVICE =
+  /Mobi|Android|iPhone|iPad/i.test(navigator.userAgent) ||
+  window.innerWidth <= 768;
 const DESKTOP_IS_LOW_END = !IS_MOBILE_DEVICE && navigator.hardwareConcurrency <= 2;
 const IS_LOW_END = IS_MOBILE_DEVICE || DESKTOP_IS_LOW_END;
 const CFG = {
@@ -614,19 +616,17 @@ const scale = baseScale * smoothHover[i];
   }
 
   /* ── Sphere scale + alpha  ── */
-  const { wrapP, spiralP, spiralIn, spiralDone } = scrollState;
+  const { spiralP, spiralIn, spiralDone } = scrollState;
   const breathe = 1 + Math.sin(t * 1.5) * 0.05;
   let sphereTargetScale = breathe;
   let sphereTargetAlpha = 1;
-  const rawSpiralProgress = isMobile
-    ? smoothStep(0.58, 0.88, wrapP)
-    : (spiralIn ? Math.max(0, spiralP - 0.05) : 0);
+  const rawSpiralProgress = spiralIn ? Math.max(0, spiralP - 0.05) : 0;
   sphereSpiralProgressSmooth = lerpDt(sphereSpiralProgressSmooth, rawSpiralProgress, 0.09, dt);
 
-  if (isMobile ? sphereSpiralProgressSmooth > 0.001 : spiralIn) {
+  if (spiralIn) {
     sphereTargetScale = breathe * (1 + sphereSpiralProgressSmooth * (isMobile ? 10 : 25));
     sphereTargetAlpha = Math.max(0, 1 - sphereSpiralProgressSmooth * 5);
-  } else if (!isMobile && spiralDone) {
+  } else if (spiralDone) {
     sphereTargetAlpha = 0;
     sphereTargetScale = breathe * (isMobile ? 9 : 15);
   } else {
