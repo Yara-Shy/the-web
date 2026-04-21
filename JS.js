@@ -614,17 +614,19 @@ const scale = baseScale * smoothHover[i];
   }
 
   /* ── Sphere scale + alpha  ── */
-  const { spiralP, spiralIn, spiralDone } = scrollState;
+  const { wrapP, spiralP, spiralIn, spiralDone } = scrollState;
   const breathe = 1 + Math.sin(t * 1.5) * 0.05;
   let sphereTargetScale = breathe;
   let sphereTargetAlpha = 1;
-  const rawSpiralProgress = spiralIn ? Math.max(0, spiralP - 0.05) : 0;
+  const rawSpiralProgress = isMobile
+    ? smoothStep(0.58, 0.88, wrapP)
+    : (spiralIn ? Math.max(0, spiralP - 0.05) : 0);
   sphereSpiralProgressSmooth = lerpDt(sphereSpiralProgressSmooth, rawSpiralProgress, 0.09, dt);
 
-  if (spiralIn) {
+  if (isMobile ? sphereSpiralProgressSmooth > 0.001 : spiralIn) {
     sphereTargetScale = breathe * (1 + sphereSpiralProgressSmooth * (isMobile ? 10 : 25));
     sphereTargetAlpha = Math.max(0, 1 - sphereSpiralProgressSmooth * 5);
-  } else if (spiralDone) {
+  } else if (!isMobile && spiralDone) {
     sphereTargetAlpha = 0;
     sphereTargetScale = breathe * (isMobile ? 9 : 15);
   } else {
