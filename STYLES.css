@@ -626,6 +626,7 @@ nav * { pointer-events: all; }
   padding: 0;
   overflow: visible;
   margin-top: 3rem;
+  margin-bottom: 4.5rem;
 }
 .embla__slide {
   flex: 0 0 80%;
