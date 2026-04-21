@@ -106,13 +106,18 @@ const loaderTick = setInterval(() => {
 /* ─────────────────────────────────────────────
    CONFIG
    ───────────────────────────────────────────── */
-const IS_LOW_END = navigator.hardwareConcurrency <= 2;
+const IS_MOBILE_DEVICE =
+  /Mobi|Android|iPhone|iPad/i.test(navigator.userAgent) ||
+  window.matchMedia('(pointer: coarse)').matches;
+const DESKTOP_IS_LOW_END = !IS_MOBILE_DEVICE && navigator.hardwareConcurrency <= 2;
+const IS_LOW_END = IS_MOBILE_DEVICE || DESKTOP_IS_LOW_END;
 const CFG = {
-  sphere : { count: IS_LOW_END ? 10_000 : 18_000, radius: 5 },
-  rings  : { count: IS_LOW_END ? 4 : 5, pointsPerRing: IS_LOW_END ? 1_200 : 2_000, radius: 7.5, thickness: 0.6 },
-  stars  : { count: IS_LOW_END ? 3_000 : 6_000, spread: 50_000 },
-  bloom  : { strength: IS_LOW_END ? 0.8 : 1.2, threshold: 0, radius: 0.5 },
-  dpr    : Math.min(devicePixelRatio, 2),
+  // Keep desktop visuals as original, apply tuned values only on mobile.
+  sphere : { count: IS_MOBILE_DEVICE ? 9_000 : (DESKTOP_IS_LOW_END ? 10_000 : 18_000), radius: 5 },
+  rings  : { count: IS_MOBILE_DEVICE ? 3 : (DESKTOP_IS_LOW_END ? 4 : 5), pointsPerRing: IS_MOBILE_DEVICE ? 900 : (DESKTOP_IS_LOW_END ? 1_200 : 2_000), radius: 7.5, thickness: 0.6 },
+  stars  : { count: IS_MOBILE_DEVICE ? 2_000 : (DESKTOP_IS_LOW_END ? 3_000 : 6_000), spread: 50_000 },
+  bloom  : { strength: IS_MOBILE_DEVICE ? 0.65 : (DESKTOP_IS_LOW_END ? 0.8 : 1.2), threshold: 0, radius: IS_MOBILE_DEVICE ? 0.4 : 0.5 },
+  dpr    : Math.min(devicePixelRatio, IS_MOBILE_DEVICE ? 1.5 : 2),
   explode: { duration: 2_000 },
 };
 const CAM = { FAR_Z: 28, NEAR_Z: 15, SPIRAL_Z: 3.5, Y: 5, HERO_X: -10 };
@@ -270,8 +275,11 @@ Object.assign(controls, {
   enableDamping: true, dampingFactor: .04, rotateSpeed: .6,
   minDistance: 2, maxDistance: 60, enableZoom: false,
 });
+if (IS_MOBILE_DEVICE) controls.enabled = false;
 
-const bloomRes = IS_LOW_END
+const bloomRes = IS_MOBILE_DEVICE
+  ? new THREE.Vector2(innerWidth*.35, innerHeight*.35)
+  : DESKTOP_IS_LOW_END
   ? new THREE.Vector2(innerWidth*.5, innerHeight*.5)
   : new THREE.Vector2(innerWidth, innerHeight);
 const composer  = new EffectComposer(renderer);
@@ -295,7 +303,7 @@ window.addEventListener('resize', () => {
   composer.setSize(innerWidth, innerHeight);
 }, { passive: true });
 
-const isMobile = /Mobi|Android|iPhone|iPad/i.test(navigator.userAgent) || window.matchMedia('(pointer: coarse)').matches;
+const isMobile = IS_MOBILE_DEVICE;
 
 if (!isMobile) {
   window.addEventListener('mousemove', e => {
@@ -316,9 +324,17 @@ const scrollState = {
   spiralDone: false,
   scrollY:    0,
 };
+let stableVh = window.innerHeight;
+
+function updateStableViewportHeight(force = false) {
+  const next = window.innerHeight;
+  // Mobile browser chrome can slightly change innerHeight during scroll.
+  // Ignore tiny changes to keep scroll progress stable and avoid jitter.
+  if (force || Math.abs(next - stableVh) > 120) stableVh = next;
+}
 
 function updateScrollState() {
-  const vh = window.innerHeight;
+  const vh = stableVh;
   scrollState.scrollY = window.scrollY;
 
   const wrapRect   = getCachedRect(document.getElementById('s-home-wrapper'));
@@ -333,15 +349,15 @@ function updateScrollState() {
     ? Math.max(0, Math.min(1, -spiralRect.top / spiralScroll))
     : 0;
 
-
   scrollState.spiralIn = spiralRect.top < vh
-  && spiralRect.bottom > 0
-  && scrollState.spiralP > .01
-  && scrollState.spiralP < .99;
+    && spiralRect.bottom > 0
+    && scrollState.spiralP > .01
+    && scrollState.spiralP < .99;
   scrollState.spiralDone = spiralRect.bottom <= 0 || scrollState.spiralP >= .99;
 }
 
-window.addEventListener('scroll', updateScrollState, { passive: true });
+window.addEventListener('resize', () => updateStableViewportHeight(false), { passive: true });
+window.addEventListener('orientationchange', () => updateStableViewportHeight(true), { passive: true });
 
 
 /* ─────────────────────────────────────────────
@@ -352,8 +368,10 @@ let camCurrentZ = CAM.FAR_Z;
 let camTargetX  = 0;
 let camCurrentX = 0;
 let scrollCueGone = false, heroRevealed = false, explosionFired = false;
+let lastExplosionAt = -10;
 // heroRevealed тепер реактивний — відображає поточний стан, а не "чи спрацював колись"
 let sphereAlphaSmooth = 1;
+let sphereSpiralProgressSmooth = 0;
 
 function computeCameraTarget() {
   if (!introReady) return;
@@ -384,7 +402,9 @@ function computeCameraTarget() {
   camTargetZ = CAM.FAR_Z + (CAM.NEAR_Z - CAM.FAR_Z) * e;
   camTargetX = -6 * e;
 
-  const shouldShowHero = wrapP >= 0.58;
+  const showAt = 0.62;
+  const hideAt = 0.48;
+  const shouldShowHero = heroRevealed ? wrapP >= hideAt : wrapP >= showAt;
 
 if (shouldShowHero !== heroRevealed) {
   heroRevealed = shouldShowHero;
@@ -394,10 +414,11 @@ if (shouldShowHero !== heroRevealed) {
   document.getElementById('theme-dots')?.classList.toggle('show', shouldShowHero);
   document.querySelectorAll('.hero-reveal').forEach(el => el.classList.toggle('show', shouldShowHero));
 
-  if (shouldShowHero && !explosionFired) {
+  if (shouldShowHero && !explosionFired && (clock.getElapsedTime() - lastExplosionAt > 1.2)) {
     explosionFired = true;
     isExploding    = true;
     explodeStart   = clock.getElapsedTime();
+    lastExplosionAt = explodeStart;
   }
 
   // При поверненні вгору — скидаємо explosionFired,
@@ -415,8 +436,6 @@ if (shouldShowHero !== heroRevealed) {
   }
 }
 
-window.addEventListener('scroll', computeCameraTarget, { passive: true });
-
 
 
 /* ─────────────────────────────────────────────
@@ -426,12 +445,24 @@ window.addEventListener('scroll', computeCameraTarget, { passive: true });
    ───────────────────────────────────────────── */
 const clock = new THREE.Clock();
 let lastTime = 0;
+const USE_SPIRAL_LAYOUT = !IS_MOBILE_DEVICE;
 
 // Spiral state — живе тут, оновлюється в RAF
 const spiral = (() => {
   const section = document.getElementById('spiral');
   const cards   = Array.from(section.querySelectorAll('.card'));
   const photos  = Array.from(section.querySelectorAll('.card-photo'));
+  if (!USE_SPIRAL_LAYOUT) {
+    const track = document.getElementById('spiralTrack');
+    track?.classList.add('linear-list');
+    cards.forEach((card, i) => {
+      const media = photos[i];
+      if (media && media.parentElement !== card) {
+        card.prepend(media);
+      }
+    });
+    return { tick() {} };
+  }
   const N = cards.length;
   const isMob = window.innerWidth <= 768;
   const S = {
@@ -526,7 +557,8 @@ const scale = baseScale * smoothHover[i];
         cards[i].style.filter       = filt;
         cards[i].style.opacity      = opacity.toFixed(3);
         cards[i].style.zIndex       = zIdx;
-        cards[i].style.pointerEvents = facing > .4 ? 'auto' : 'none';
+        const canTap = window.innerWidth <= 768 ? true : facing > .4;
+        cards[i].style.pointerEvents = canTap ? 'auto' : 'none';
 
         if (photos[i]) {
           photos[i].style.transform = tf;
@@ -547,6 +579,10 @@ const scale = baseScale * smoothHover[i];
   const t  = clock.getElapsedTime();
   const dt = Math.min(t - lastTime, 0.1); // cap dt щоб не було стрибка після blur вкладки
   lastTime = t;
+
+  // Keep camera/hero transitions stable by deriving state in RAF too.
+  updateScrollState();
+  computeCameraTarget();
 
   /* ── Cursor  ── */
   if (!isMobile) {
@@ -569,7 +605,7 @@ const scale = baseScale * smoothHover[i];
   /* ── Explode  ── */
   if (isExploding) {
     const p = Math.min((t - explodeStart) * 1_000 / CFG.explode.duration, 1);
-    const e = easeInOut(Math.sin(p * Math.PI));
+    const e = easeInOut(p);
     rings.children.forEach(r => r.material.uniforms.uExplode.value = e);
     if (p >= 1) isExploding = false;
   } else {
@@ -584,14 +620,17 @@ const scale = baseScale * smoothHover[i];
   const breathe = 1 + Math.sin(t * 1.5) * 0.05;
   let sphereTargetScale = breathe;
   let sphereTargetAlpha = 1;
+  const rawSpiralProgress = spiralIn ? Math.max(0, spiralP - 0.05) : 0;
+  sphereSpiralProgressSmooth = lerpDt(sphereSpiralProgressSmooth, rawSpiralProgress, 0.09, dt);
 
   if (spiralIn) {
-    const adjustedP = Math.max(0, spiralP - 0.05);
-    sphereTargetScale = breathe * (1 + adjustedP * 25);
-    sphereTargetAlpha = Math.max(0, 1 - adjustedP * 5);
+    sphereTargetScale = breathe * (1 + sphereSpiralProgressSmooth * (isMobile ? 10 : 25));
+    sphereTargetAlpha = Math.max(0, 1 - sphereSpiralProgressSmooth * 5);
   } else if (spiralDone) {
     sphereTargetAlpha = 0;
-    sphereTargetScale = breathe * 15;
+    sphereTargetScale = breathe * (isMobile ? 9 : 15);
+  } else {
+    sphereSpiralProgressSmooth = lerpDt(sphereSpiralProgressSmooth, 0, 0.08, dt);
   }
 
   const currentScale = sphere.scale.x;
@@ -634,7 +673,7 @@ const scale = baseScale * smoothHover[i];
   rings.rotation.y     += 0.0005;
 
   /* ── Spiral CSS  ── */
-  spiral.tick(dt);
+  if (USE_SPIRAL_LAYOUT) spiral.tick(dt);
 
   controls.update();
   composer.render();
@@ -732,23 +771,62 @@ const zoomOverlay = document.getElementById('zoom-overlay');
 
 // isMobile вже оголошена вище
 
+function parsePlainMeta(meta) {
+  if (typeof meta !== 'string') return '';
+  return meta
+    .replace(/<br\s*\/?>/gi, '\n')
+    .replace(/<[^>]*>/g, '')
+    .replace(/[ \t]+\n/g, '\n')
+    .trim();
+}
+
 function openZoom(projIdx, sourceArr) {
   const arr = sourceArr || PROJECTS;
   const p = arr[projIdx];
   if (!p) return;
+  const zoomTitle = document.getElementById('zoom-title');
+  const zoomSubtitle = document.getElementById('zoom-subtitle');
+  const zoomDesc = document.getElementById('zoom-desc');
+  const zoomMeta = document.getElementById('zoom-meta');
+  const zoomTags = document.getElementById('zoom-tags');
+  const zoomGrid = document.getElementById('zoom-grid');
+
   zoomCurrentProject = p;
   zoomCurrentImg = 0;
-  document.getElementById('zoom-title').textContent    = p.title;
-  document.getElementById('zoom-subtitle').textContent = p.subtitle;
-  document.getElementById('zoom-desc').textContent     = p.desc;
-  document.getElementById('zoom-meta').innerHTML       = p.meta;
-  document.getElementById('zoom-tags').innerHTML = p.tags.map(t => `<span class="meta-tag">${t}</span>`).join('');
-  const allEls = p.images.map(item => item.type === 'video'
-    ? `<video src="${item.src}" autoplay muted loop playsinline></video>`
-    : `<img src="${item.src}" alt="${p.title}"/>`
-  ).join('');
-  const zoomGrid = document.getElementById('zoom-grid');
-  zoomGrid.innerHTML = allEls;
+  zoomTitle.textContent = p.title;
+  zoomSubtitle.textContent = p.subtitle;
+  zoomDesc.textContent = p.desc;
+  zoomMeta.textContent = parsePlainMeta(p.meta);
+
+  zoomTags.textContent = '';
+  p.tags.forEach(tag => {
+    const tagEl = document.createElement('span');
+    tagEl.className = 'meta-tag';
+    tagEl.textContent = tag;
+    zoomTags.appendChild(tagEl);
+  });
+
+  zoomGrid.textContent = '';
+  p.images.forEach(item => {
+    if (item.type === 'video') {
+      const video = document.createElement('video');
+      video.src = item.src;
+      video.autoplay = true;
+      video.muted = true;
+      video.loop = true;
+      video.playsInline = true;
+      video.preload = 'metadata';
+      zoomGrid.appendChild(video);
+      return;
+    }
+    const img = document.createElement('img');
+    img.src = item.src;
+    img.alt = p.title;
+    img.loading = 'lazy';
+    img.decoding = 'async';
+    zoomGrid.appendChild(img);
+  });
+
   if (p.images.length === 1) {
     zoomGrid.classList.add('single-image');
   } else {
@@ -763,6 +841,30 @@ function closeZoom() {
   zoomOverlay.classList.remove('open');
   document.body.style.overflow = '';
   zoomOverlay.scrollTop = 0;
+}
+
+function configureAutoplayVideo(video) {
+  if (!video) return;
+  video.muted = true;
+  video.defaultMuted = true;
+  video.autoplay = true;
+  video.loop = true;
+  video.playsInline = true;
+  video.controls = false;
+  video.disablePictureInPicture = true;
+  video.setAttribute('muted', '');
+  video.setAttribute('autoplay', '');
+  video.setAttribute('loop', '');
+  video.setAttribute('playsinline', '');
+  video.setAttribute('webkit-playsinline', '');
+  video.setAttribute('controlsList', 'nodownload nofullscreen noplaybackrate');
+}
+
+function playIfPossible(video) {
+  if (!video) return;
+  configureAutoplayVideo(video);
+  const p = video.play();
+  if (p && typeof p.catch === 'function') p.catch(() => {});
 }
 
 document.getElementById('zoom-grid').addEventListener('click', e => {
@@ -780,29 +882,58 @@ document.addEventListener('keydown', e => {
   if (!zoomOverlay.classList.contains('open')) return;
   if (e.key === 'Escape') closeZoom();
 });
-let touchStartX = 0, touchStartY = 0;
 
-document.addEventListener('touchstart', e => {
-  touchStartX = e.touches[0].clientX;
-  touchStartY = e.touches[0].clientY;
-}, { passive: true });
+document.querySelectorAll('#spiral .card .card-hit').forEach(el => el.remove());
 
-document.addEventListener('touchend', e => {
-  const card = e.target.closest('.card');
-  if (!card) return;
-  const dx = Math.abs(e.changedTouches[0].clientX - touchStartX);
-  const dy = Math.abs(e.changedTouches[0].clientY - touchStartY);
-  if (dx > 8 || dy > 8) return; // це був свайп — ігноруємо
-  openZoom(parseInt(card.dataset.idx));
-}, { passive: true });
+document.querySelectorAll('#spiral .card').forEach(card => {
+  if (card.dataset.zoomBound === '1') return;
+  // Desktop/mouse fallback
+  card.addEventListener('click', e => {
+    e.preventDefault();
+    const idx = Number.parseInt(card.dataset.idx, 10);
+    if (!Number.isNaN(idx)) openZoom(idx);
+  });
 
-document.addEventListener('click', e => {
-  if (isMobile) return; // на мобільному використовуємо тільки touchend
-  const card = e.target.closest('.card');
-  if (!card) return;
-  e.preventDefault();
-  openZoom(parseInt(card.dataset.idx));
+  card.dataset.zoomBound = '1';
 });
+
+document.querySelectorAll('.card-photo video, .mc-img video').forEach(video => {
+  configureAutoplayVideo(video);
+  video.addEventListener('loadedmetadata', () => playIfPossible(video), { once: true });
+  playIfPossible(video);
+});
+
+const spiralTrackEl = document.getElementById('spiralTrack');
+let tapStartX = 0;
+let tapStartY = 0;
+let tapStartAt = 0;
+let tapCard = null;
+
+spiralTrackEl?.addEventListener('pointerdown', e => {
+  if (e.pointerType !== 'touch') return;
+  tapStartX = e.clientX;
+  tapStartY = e.clientY;
+  tapStartAt = performance.now();
+  tapCard = e.target.closest('.card');
+}, { passive: true });
+
+spiralTrackEl?.addEventListener('pointerup', e => {
+  if (e.pointerType !== 'touch') return;
+  if (!tapCard) return;
+  const dx = Math.abs(e.clientX - tapStartX);
+  const dy = Math.abs(e.clientY - tapStartY);
+  const dtMs = performance.now() - tapStartAt;
+  const isTap = dx <= 28 && dy <= 28 && dtMs <= 450;
+  if (!isTap) {
+    tapCard = null;
+    return;
+  }
+  e.preventDefault();
+  const idx = Number.parseInt(tapCard.dataset.idx, 10);
+  if (!Number.isNaN(idx)) openZoom(idx);
+  tapCard = null;
+}, { passive: false });
+
 
 document.querySelectorAll('.tdot').forEach(dot => dot.addEventListener('click', () => applyTheme(dot.dataset.t)));
 
@@ -818,20 +949,6 @@ const sections  = ['s-home','s-work','s-about','s-contact'].map(id => document.g
    ───────────────────────────────────────────── */
 
 const MORE_PROJECTS = [
-  {
-  title: 'Chornozem',
-  subtitle: 'Startup Project · Zurich/Kyiv, 2025',
-  tags: ['Research Visualization', 'Visual Communication & Production'],
-  desc: 'Visual communication for a research startup developing soil contamination detection tools. Shaped how the project is presented across pitches, exhibitions, and public platforms, producing video, graphics, and spatial materials that translate scientific data into clear narratives. The project received multiple international recognitions, including 1st Place at Falling Walls Lab Switzerland and Overall Winner at BioDesign Challenge 2025.',
-  meta: '<strong>Role:</strong> Visual Communication & Production <br><strong>Tools:</strong> Adobe Suite, Blender <br><strong>Year:</strong> 2025',
-  images: [
-    { type: 'video', src: 'https://res.cloudinary.com/dtzuydpci/video/upload/v1774623472/CHORNOZEM2-_Agrifood_-_New_Food_Summit_2025_5_b2k8fw.mp4'}, 
-    { type: 'img', src: 'https://res.cloudinary.com/dtzuydpci/image/upload/v1775567933/1Q6A2657-2_f7jwxe.png'}, 
-    { type: 'img', src: 'https://res.cloudinary.com/dtzuydpci/image/upload/v1775569392/ecoside-v2_rss0kb.jpg' },
-    { type: 'img', src: 'https://res.cloudinary.com/dtzuydpci/image/upload/v1775569035/_0006100_rtlfx0.png' },
-    
-  ],
-},
   {
   title: 'Forever Trashed',
   subtitle: 'Prague · 2023',
@@ -858,7 +975,20 @@ const MORE_PROJECTS = [
       { type: 'img', src: 'https://i-p.rmcdn.net/619d2b5322f258001999020d/4640512/image-d46d9c9c-559e-4425-9f7e-e46af6dc142e.jpg?w=1200&e=webp' },
     ],
 },
-  
+  {
+  title: 'Chornozem',
+  subtitle: 'Startup Project · Zurich/Kyiv, 2025',
+  tags: ['Research Visualization', 'Visual Communication & Production'],
+  desc: 'Visual communication for a research startup developing soil contamination detection tools. Shaped how the project is presented across pitches, exhibitions, and public platforms, producing video, graphics, and spatial materials that translate scientific data into clear narratives. The project received multiple international recognitions, including 1st Place at Falling Walls Lab Switzerland and Overall Winner at BioDesign Challenge 2025.',
+  meta: '<strong>Role:</strong> Visual Communication & Production <br><strong>Tools:</strong> Adobe Suite, Blender <br><strong>Year:</strong> 2025',
+  images: [
+    { type: 'video', src: 'https://res.cloudinary.com/dtzuydpci/video/upload/v1774623472/CHORNOZEM2-_Agrifood_-_New_Food_Summit_2025_5_b2k8fw.mp4'}, 
+    { type: 'img', src: 'https://res.cloudinary.com/dtzuydpci/image/upload/v1775567933/1Q6A2657-2_f7jwxe.png'}, 
+    { type: 'img', src: 'https://res.cloudinary.com/dtzuydpci/image/upload/v1775569392/ecoside-v2_rss0kb.jpg' },
+    { type: 'img', src: 'https://res.cloudinary.com/dtzuydpci/image/upload/v1775569035/_0006100_rtlfx0.png' },
+    
+  ],
+},
    {
   title: 'Kaleidoscope',
   subtitle: 'Installation · Prague, 2024',
@@ -898,8 +1028,8 @@ if (mCarousel) {
 mCarousel.innerHTML = MORE_PROJECTS.map((p, i) => {
     const first = p.images[0];
     const thumb = first.type === 'video'
-      ? `<video src="${first.src}" autoplay muted loop playsinline></video>`
-      : `<img src="${first.src}" alt="${p.title}"/>`;
+      ? `<video src="${first.src}" autoplay muted loop playsinline preload="metadata"></video>`
+      : `<img src="${first.src}" alt="${p.title}" loading="lazy" decoding="async"/>`;
     return `
     <div class="embla__slide" data-idx="${i}">
       <div class="mc-card">
