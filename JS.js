@@ -954,7 +954,7 @@ const MORE_PROJECTS = [
   subtitle: 'Prague · 2023',
   tags: ['3D Environments', '3D Animation', '3D Modeling','Unity'],
   desc: 'Designed and built a game environment, including 3D assets, level structure, and character/object animations. Focused on spatial composition, gameplay flow, and visual coherence across the scene. Presented at FIK (Ústí nad Labem, 2023) and Lektvar (Olomouc, 2023).',
-  meta: '<strong>Role:</strong> Environment & 3D Artist <br><strong>Tools:</strong> Blender, Unity <br><strong>Year:</strong> 2023',
+  meta: '<strong>Role:</strong> 3D Artist <br><strong>Tools:</strong> Blender, Unity <br><strong>Year:</strong> 2023',
   images: [
     { type: 'img', src: 'https://res.cloudinary.com/dtzuydpci/image/upload/v1774537350/forever_trashed4_1_vpay3y.jpg' },
     { type: 'img', src: 'https://res.cloudinary.com/dtzuydpci/image/upload/v1774535643/forever_trashed5_zg6oit.jpg' },
@@ -1008,7 +1008,7 @@ const MORE_PROJECTS = [
   subtitle: 'Installation · Berlin, 2024',
   tags: ['Audio-Reactive Visuals', 'Signal Routing', 'TouchDesigner'],
   desc: 'Developed an interactive installation combining spatial audio and generative visuals. Sensors placed in the space captured participant movement, driving changes in audio, which in turn influenced the visual system. Built and tuned the signal flow between input, sound, and graphics to maintain a coherent real-time response during interaction. Exhibited at BHROX, Berlin, in 2024.',
-  meta: '<strong>Role:</strong> Visual Designer, Technical Operator <br><strong>Tools:</strong>TouchDesigner<br><strong>Year:</strong> 2024',
+  meta: '<strong>Role:</strong> Visual Designer <br><strong>Tools:</strong>TouchDesigner<br><strong>Year:</strong> 2024',
   images: [
     { type: 'img', src: 'https://res.cloudinary.com/dtzuydpci/image/upload/v1774622526/plug_in_3_gibrbh.jpg' },
   ],
