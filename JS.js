@@ -984,7 +984,7 @@ const MORE_PROJECTS = [
   images: [
     { type: 'video', src: 'https://res.cloudinary.com/ddkjvt1t8/video/upload/v1778094645/CHORNOZEM2-_Agrifood_-_New_Food_Summit_2025_5_b2k8fw_qaspyg.mp4'}, 
     { type: 'img', src: 'https://res.cloudinary.com/ddkjvt1t8/image/upload/v1778096548/chornozem_falling_walls_ofovk9.png'}, 
-    { type: 'img', src: 'https://res.cloudinary.com/ddkjvt1t8/image/upload/v1778096548/chornozem_falling_walls_ofovk9.png' },
+    { type: 'img', src: 'https://res.cloudinary.com/ddkjvt1t8/image/upload/v1778096594/chornozem_vdid_o9yruj.jpg' },
     { type: 'img', src: 'https://res.cloudinary.com/ddkjvt1t8/image/upload/v1778096659/chornozem_app_pja1yz.png' },
     
   ],
