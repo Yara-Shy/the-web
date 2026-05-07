@@ -690,15 +690,6 @@ const scale = baseScale * smoothHover[i];
 
 const PROJECTS = [
   {
-    title: 'Do You',
-    subtitle: 'Music Video · Zurich, 2024',
-    tags: ['Stage Visuals', 'Lighting Integration', 'TouchDesigner'],
-    desc: 'Developed and ran a real-time visual system for a music video shoot, combining stage lighting with generative graphics. The visuals were adjusted live on set to match camera movement and performance timing.',
-    meta: '<strong>Role:</strong> Visual Designer <br><strong>Tools:</strong> TouchDesigner, After Effects, MadMapper<br><strong>Year:</strong> 2024',images: [
-      { type: 'video', src: 'https://res.cloudinary.com/ddkjvt1t8/video/upload/v1778094638/Doyou_kd0xsh_fhyrd3.mp4' },
-    ]
-  },
-  {
     title: 'Nightfall',
     subtitle: 'Short Movie · Zurich 2026',
     tags: ['Virtual Production', '3D Environments', '3D Animation', 'Unreal Engine'],
@@ -722,6 +713,15 @@ const PROJECTS = [
       { type: 'img', src: 'https://res.cloudinary.com/ddkjvt1t8/image/upload/v1778094633/rock_4_ctrrqu_gkwb4s.png' },
       { type: 'img', src: 'https://res.cloudinary.com/ddkjvt1t8/image/upload/v1778094633/rock_2_sag9tx_wjlfze.png' },
       { type: 'img', src: 'https://res.cloudinary.com/ddkjvt1t8/image/upload/v1778094629/rock_3_fd4wae_rfngiz.png' },
+    ]
+  },
+   {
+    title: 'Do You',
+    subtitle: 'Music Video · Zurich, 2024',
+    tags: ['Stage Visuals', 'Lighting Integration', 'TouchDesigner'],
+    desc: 'Developed and ran a real-time visual system for a music video shoot, combining stage lighting with generative graphics. The visuals were adjusted live on set to match camera movement and performance timing.',
+    meta: '<strong>Role:</strong> Visual Designer <br><strong>Tools:</strong> TouchDesigner, After Effects, MadMapper<br><strong>Year:</strong> 2024',images: [
+      { type: 'video', src: 'https://res.cloudinary.com/ddkjvt1t8/video/upload/v1778094638/Doyou_kd0xsh_fhyrd3.mp4' },
     ]
   },
   {
