@@ -154,11 +154,11 @@ const DESKTOP_IS_LOW_END = !IS_MOBILE_DEVICE && navigator.hardwareConcurrency <=
 const IS_LOW_END = IS_MOBILE_DEVICE || DESKTOP_IS_LOW_END;
 const CFG = {
   // Keep desktop visuals as original, apply tuned values only on mobile.
-  sphere : { count: IS_MOBILE_DEVICE ? 9_000 : (DESKTOP_IS_LOW_END ? 10_000 : 18_000), radius: 5 },
-  rings  : { count: IS_MOBILE_DEVICE ? 3 : (DESKTOP_IS_LOW_END ? 4 : 5), pointsPerRing: IS_MOBILE_DEVICE ? 900 : (DESKTOP_IS_LOW_END ? 1_200 : 2_000), radius: 7.5, thickness: 0.6 },
-  stars  : { count: IS_MOBILE_DEVICE ? 2_000 : (DESKTOP_IS_LOW_END ? 3_000 : 6_000), spread: 50_000 },
+  sphere : { count: IS_MOBILE_DEVICE ? 3_000 : (DESKTOP_IS_LOW_END ? 10_000 : 18_000), radius: 5 },
+  rings  : { count: IS_MOBILE_DEVICE ? 3 : (DESKTOP_IS_LOW_END ? 4 : 5), pointsPerRing: IS_MOBILE_DEVICE ? 350 : (DESKTOP_IS_LOW_END ? 1_200 : 2_000), radius: 7.5, thickness: 0.6 },
+  stars  : { count: IS_MOBILE_DEVICE ? 900 : (DESKTOP_IS_LOW_END ? 3_000 : 6_000), spread: 50_000 },
   bloom  : { strength: IS_MOBILE_DEVICE ? 0.65 : (DESKTOP_IS_LOW_END ? 0.8 : 1.2), threshold: 0, radius: IS_MOBILE_DEVICE ? 0.4 : 0.5 },
-  dpr    : Math.min(devicePixelRatio, IS_MOBILE_DEVICE ? 1.5 : 2),
+  dpr    : Math.min(devicePixelRatio, IS_MOBILE_DEVICE ? 1 : 2),
   explode: { duration: 2_000 },
 };
 const CAM = { FAR_Z: 28, NEAR_Z: 15, SPIRAL_Z: 3.5, Y: 5, HERO_X: -10 };
@@ -172,7 +172,7 @@ const GLSL_SIMPLEX = `vec3 mod289(vec3 x){return x-floor(x*(1./289.))*289.;}vec4
 const SHADERS = {
   sphere: {
     vert: GLSL_SIMPLEX + `attribute float size;varying vec3 vColor;varying float vME;uniform float time;uniform vec2 uMouse;void main(){vColor=color;vec4 pv2=projectionMatrix*modelViewMatrix*vec4(position,1.);vec2 sp=pv2.xy/pv2.w;float md=distance(sp,uMouse);float me=1.-smoothstep(0.,.25,md);vME=me;float nA=0.8+me*5.0;vec3 ni=position*.4+time*.8;vec3 d=vec3(snoise(ni),snoise(ni+vec3(10.)),snoise(ni+vec3(20.)));vec3 fp=position+d*nA;float pulse=sin(time+length(position))*.1+1.;vec4 mv=modelViewMatrix*vec4(fp,1.);gl_PointSize=size*(400./-mv.z)*pulse*(1.+vME*.5);gl_Position=projectionMatrix*mv;}`,
-    frag: `varying vec3 vColor;varying float vME;uniform float time;float rand(vec2 c){return fract(sin(dot(c,vec2(12.9898,78.233)))*43758.5453);}void main(){vec2 cxy=2.*gl_PointCoord-1.;float r=dot(cxy,cxy);if(r>1.)discard;float glow=exp(-r*3.5)+vME*.5;float tw=rand(gl_PointCoord+time)*.5+.5;vec3 fc=vColor*(1.1+sin(time*.8)*.2+vME*.5)*glow*tw;gl_FragColor=vec4(fc,smoothstep(0.,1.,glow));}`,
+    frag: `varying vec3 vColor;varying float vME;uniform float time;uniform float uGlowSpread;float rand(vec2 c){return fract(sin(dot(c,vec2(12.9898,78.233)))*43758.5453);}void main(){vec2 cxy=2.*gl_PointCoord-1.;float r=dot(cxy,cxy);if(r>1.)discard;float glow=exp(-r*3.5/uGlowSpread)+vME*.5;float tw=rand(gl_PointCoord+time)*.5+.5;vec3 fc=vColor*(1.1+sin(time*.8)*.2+vME*.5)*glow*tw*uGlowSpread;gl_FragColor=vec4(fc,smoothstep(0.,1.,glow));}`,
   },
   rings: {
     vert: GLSL_SIMPLEX + `attribute float size;attribute vec3 randomDir;varying vec3 vColor;varying float vME;uniform float time;uniform vec2 uMouse;uniform float uExplode;void main(){vColor=color;float ea=uExplode*35.;float turb=snoise(position*.4+randomDir*2.+time*.8)*10.*uExplode;vec3 ep=position+randomDir*(ea+turb);vec3 mp=mix(position,ep,uExplode);vec4 pv2=projectionMatrix*modelViewMatrix*vec4(position,1.);vec2 sp=pv2.xy/pv2.w;float md=distance(sp,uMouse);float me=1.-smoothstep(0.,.25,md);vME=me;float nA=(0.8+me*2.0)*(1.-uExplode);vec3 ni=mp*.4+time*.5;vec3 d=vec3(snoise(ni),snoise(ni+vec3(10.)),snoise(ni+vec3(20.)));vec3 fp=mp+d*nA;float pulse=sin(time+length(position))*.1+1.;vec4 mv=modelViewMatrix*vec4(fp,1.);gl_PointSize=size*(400./-mv.z)*pulse*(1.+vME*.5);gl_Position=projectionMatrix*mv;}`,
@@ -188,7 +188,7 @@ const SHADERS = {
 /* ─────────────────────────────────────────────
    GEOMETRY
    ───────────────────────────────────────────── */
-function makeSphere(radius, count) {
+function makeSphere(radius, count, glowSpread = 1) {
   const geo = new THREE.BufferGeometry();
   const pos = new Float32Array(count * 3), col = new Float32Array(count * 3), sz = new Float32Array(count);
   for (let i = 0; i < count; i++) {
@@ -202,7 +202,7 @@ function makeSphere(radius, count) {
   geo.setAttribute('color',    new THREE.BufferAttribute(col, 3));
   geo.setAttribute('size',     new THREE.BufferAttribute(sz,  1));
   return new THREE.Points(geo, new THREE.ShaderMaterial({
-    uniforms: { time: { value: 0 }, uMouse: { value: new THREE.Vector2(-10, -10) } },
+    uniforms: { time: { value: 0 }, uMouse: { value: new THREE.Vector2(-10, -10) }, uGlowSpread: { value: glowSpread } },
     vertexShader: SHADERS.sphere.vert, fragmentShader: SHADERS.sphere.frag,
     vertexColors: true, transparent: true, depthWrite: false, blending: THREE.AdditiveBlending,
   }));
@@ -318,18 +318,24 @@ Object.assign(controls, {
 });
 if (IS_MOBILE_DEVICE) controls.enabled = false;
 
-const bloomRes = IS_MOBILE_DEVICE
-  ? new THREE.Vector2(innerWidth*.35, innerHeight*.35)
-  : DESKTOP_IS_LOW_END
-  ? new THREE.Vector2(innerWidth*.5, innerHeight*.5)
-  : new THREE.Vector2(innerWidth, innerHeight);
 const composer  = new EffectComposer(renderer);
-const bloomPass = new UnrealBloomPass(bloomRes, CFG.bloom.strength, CFG.bloom.radius);
-bloomPass.threshold = CFG.bloom.threshold;
 composer.addPass(new RenderPass(scene, camera));
-composer.addPass(bloomPass);
+if (!IS_MOBILE_DEVICE) {
+  // Bloom — багатопрохідне розмиття всього екрана щокадру, найдорожча
+  // частина рендеру. На мобільних GPU це і є головна причина глюків/
+  // просідань під час скролу, тому на мобільних просто не додаємо цей pass.
+  const bloomRes = DESKTOP_IS_LOW_END
+    ? new THREE.Vector2(innerWidth*.5, innerHeight*.5)
+    : new THREE.Vector2(innerWidth, innerHeight);
+  const bloomPass = new UnrealBloomPass(bloomRes, CFG.bloom.strength, CFG.bloom.radius);
+  bloomPass.threshold = CFG.bloom.threshold;
+  composer.addPass(bloomPass);
+}
 
-const sphere    = makeSphere(CFG.sphere.radius, CFG.sphere.count);
+// На мобільних немає bloom-постобробки (вимкнена заради продуктивності),
+// тож компенсуємо трохи "живішим" світінням прямо в шейдері сфери —
+// це майже безкоштовно (той самий шейдер, лише softer falloff).
+const sphere    = makeSphere(CFG.sphere.radius, CFG.sphere.count, IS_MOBILE_DEVICE ? 1.8 : 1);
 const rings     = makeRings(CFG.rings);
 const stars     = makeStars(CFG.stars);
 const mainGroup = new THREE.Group();
