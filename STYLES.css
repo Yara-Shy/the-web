@@ -163,7 +163,7 @@ nav * { pointer-events: all; }
   /* На мобільних hero показується одразу (без анімації наближення),
      тож не потрібен весь 300vh запас — лишаємо трохи для preZoom-переходу
      камери в спіраль (JS.js: wrapP > 0.75), а решту "мертвого" скролу прибираємо. */
-  #s-home-wrapper { height: 160vh; }
+  #s-home-wrapper { height: 112vh; }
 }
 #s-home {
   position: sticky; top: 0;
@@ -371,10 +371,7 @@ nav * { pointer-events: all; }
   #s-home {
     padding-left: 1.4rem;
     padding-right: 1.4rem;
-    /* Текст навмисно вище центру екрана — рівно по центру спостерігалось
-       тремтіння під час першого скролу. */
-    justify-content: flex-start;
-    padding-top: 20vh;
+    justify-content: center;
   }
   .hero-left {
     width: 100%;
@@ -389,7 +386,7 @@ nav * { pointer-events: all; }
 }
   .hero-sub {
     max-width: 100%;
-    font-size: .95rem;
+    font-size: 1.15rem;
     line-height: 1.7;
     word-break: break-word;
   }
