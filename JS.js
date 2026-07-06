@@ -1022,16 +1022,27 @@ document.addEventListener('keydown', e => {
   if (e.key === 'Escape') closeZoom();
 });
 
-document.querySelectorAll('#spiral .card').forEach(card => {
-  if (card.dataset.zoomBound === '1') return;
-  // Desktop/mouse fallback
-  card.addEventListener('click', e => {
-    e.preventDefault();
-    const idx = Number.parseInt(card.dataset.idx, 10);
-    if (!Number.isNaN(idx)) openZoom(idx);
-  });
-
-  card.dataset.zoomBound = '1';
+// Делегований клік на контейнері спіралі замість окремих listener'ів на
+// кожній картці. У 3D-стеку (transform-style:preserve-3d) браузер не завжди
+// коректно визначає, яка картка "зверху" для нативного click-routing —
+// тож самі шукаємо картку за координатами кліку серед усіх, що реально
+// перекривають цю точку, і беремо найближчу до камери (найвищий z-index).
+const spiralCards = Array.from(document.querySelectorAll('#spiral .card'));
+document.getElementById('spiral')?.addEventListener('click', e => {
+  e.preventDefault();
+  let best = null, bestZ = -Infinity;
+  for (const card of spiralCards) {
+    const rect = card.getBoundingClientRect();
+    if (e.clientX >= rect.left && e.clientX <= rect.right
+      && e.clientY >= rect.top && e.clientY <= rect.bottom) {
+      const z = parseInt(card.style.zIndex, 10) || 0;
+      if (z > bestZ) { bestZ = z; best = card; }
+    }
+  }
+  if (!best) best = e.target.closest('.card');
+  if (!best) return;
+  const idx = Number.parseInt(best.dataset.idx, 10);
+  if (!Number.isNaN(idx)) openZoom(idx);
 });
 
 document.querySelectorAll('.card-photo video, .mc-img video').forEach(video => {
