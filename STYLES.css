@@ -200,8 +200,8 @@ nav * { pointer-events: all; }
 
 .btn {
   font-family: 'DM Mono', monospace;
-  font-size: .63rem; letter-spacing: .16em; text-transform: uppercase;
-  text-decoration: none; padding: .85rem 1.8rem; border: 1px solid;
+  font-size: .78rem; letter-spacing: .16em; text-transform: uppercase;
+  text-decoration: none; padding: 1.05rem 2.2rem; border: 1px solid;
   transition: all .4s var(--ease); cursor: none; display: inline-block;
   position: relative; overflow: hidden;
   backdrop-filter: saturate(1.9) brightness(1.15) blur(12px);
