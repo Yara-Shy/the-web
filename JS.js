@@ -417,6 +417,11 @@ function updateScrollState() {
 
 window.addEventListener('resize', () => updateStableViewportHeight(false), { passive: true });
 window.addEventListener('orientationchange', () => updateStableViewportHeight(true), { passive: true });
+// Також перевіряємо на scroll — на короткому мобільному #s-home-wrapper (112vh)
+// навіть невелике "застрягання" stableVh (браузерний chrome згортається під
+// час першого скролу) відчутно сильніше розхитує wrapP, бо ділимо на малу
+// відстань. Поріг (>120px) лишається той самий, тож зайвого тремтіння не додає.
+window.addEventListener('scroll', () => updateStableViewportHeight(false), { passive: true });
 
 
 /* ─────────────────────────────────────────────
