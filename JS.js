@@ -161,7 +161,7 @@ const IS_LOW_END = IS_MOBILE_DEVICE || DESKTOP_IS_LOW_END;
 const CFG = {
   // Keep desktop visuals as original, apply tuned values only on mobile.
   sphere : { count: IS_MOBILE_DEVICE ? 10_000 : (DESKTOP_IS_LOW_END ? 10_000 : 18_000), radius: 5 },
-  rings  : { count: IS_MOBILE_DEVICE ? 3 : (DESKTOP_IS_LOW_END ? 4 : 5), pointsPerRing: IS_MOBILE_DEVICE ? 500 : (DESKTOP_IS_LOW_END ? 1_200 : 2_000), radius: 7.5, thickness: 0.6 },
+  rings  : { count: IS_MOBILE_DEVICE ? 5 : (DESKTOP_IS_LOW_END ? 4 : 5), pointsPerRing: IS_MOBILE_DEVICE ? 700 : (DESKTOP_IS_LOW_END ? 1_200 : 2_000), radius: 7.5, thickness: 0.6 },
   stars  : { count: IS_MOBILE_DEVICE ? 1_200 : (DESKTOP_IS_LOW_END ? 3_000 : 6_000), spread: 50_000 },
   bloom  : { strength: IS_MOBILE_DEVICE ? 0.55 : (DESKTOP_IS_LOW_END ? 0.8 : 1.2), threshold: 0, radius: IS_MOBILE_DEVICE ? 0.35 : 0.5 },
   dpr    : Math.min(devicePixelRatio, IS_MOBILE_DEVICE ? 1.25 : 2),
@@ -349,7 +349,9 @@ const sphere    = makeSphere(CFG.sphere.radius, CFG.sphere.count, IS_MOBILE_DEVI
 const rings     = makeRings(CFG.rings);
 const stars     = makeStars(CFG.stars);
 const mainGroup = new THREE.Group();
-mainGroup.add(sphere);
+// На мобільних сферу ховаємо (не додаємо до сцени — нуль витрат на рендер),
+// кільця й зірки лишаються.
+if (!IS_MOBILE_DEVICE) mainGroup.add(sphere);
 scene.add(mainGroup, rings, stars, new THREE.PointLight(0xffffff, 2, 0));
 applyTheme('nebula');
 
