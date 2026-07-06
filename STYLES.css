@@ -92,8 +92,8 @@ button:focus-visible,
 body:has(a:hover, .btn:hover) #cur { width: 4px; height: 4px; background: var(--c1); }
 body:has(a:hover, .btn:hover) #cur-ring { width: 64px; height: 64px; border-color: var(--c1); }
 
-body:has(.card:hover) #cur { width: 14px; height: 14px; background: var(--c2); }
-body:has(.card:hover) #cur-ring { width: 80px; height: 80px; border-color: var(--c2); }
+body:has(.card:hover, .card.is-hovered) #cur { width: 14px; height: 14px; background: var(--c2); }
+body:has(.card:hover, .card.is-hovered) #cur-ring { width: 80px; height: 80px; border-color: var(--c2); }
 
 .grain {
   position: fixed; inset: 0; z-index: 1; pointer-events: none; opacity: .03;
@@ -330,7 +330,7 @@ nav * { pointer-events: all; }
   pointer-events: none;
   z-index: 10;
 }
-.card:hover::after {
+.card:hover::after, .card.is-hovered::after {
   border-color: rgba(0, 229, 255, 0.9);
   box-shadow:
     0 0 100px rgba(74, 237, 255, 0.9),
@@ -389,6 +389,7 @@ nav * { pointer-events: all; }
     font-size: 1.15rem;
     line-height: 1.7;
     word-break: break-word;
+    color: #fff;
   }
   .cta-row {
     flex-wrap: wrap;
