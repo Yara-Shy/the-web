@@ -85,8 +85,49 @@ const lpct     = document.getElementById('lpct');
 const loaderEl = document.getElementById('loader');
 let lp = 0, introReady = false;
 
+// Прогрес рахується з реальних подій завантаження (шрифти, window.load,
+// метадані першого відео), а не з випадкових чисел — щоб лоадер зникав
+// тоді, коли сторінка справді готова, а не за фіксований час.
+const loadTasks  = { fonts: false, windowLoad: false, firstVideo: false };
+const TASK_WEIGHT = { fonts: 0.3, windowLoad: 0.5, firstVideo: 0.2 };
+
+function targetProgress() {
+  let p = 0;
+  if (loadTasks.fonts)      p += TASK_WEIGHT.fonts;
+  if (loadTasks.windowLoad) p += TASK_WEIGHT.windowLoad;
+  if (loadTasks.firstVideo) p += TASK_WEIGHT.firstVideo;
+  return p * 100;
+}
+
+if (document.fonts?.ready) {
+  document.fonts.ready.then(() => { loadTasks.fonts = true; });
+} else {
+  loadTasks.fonts = true;
+}
+
+if (document.readyState === 'complete') {
+  loadTasks.windowLoad = true;
+} else {
+  window.addEventListener('load', () => { loadTasks.windowLoad = true; }, { once: true });
+}
+
+const firstVideo = document.getElementById('cp-0')?.querySelector('video');
+if (firstVideo && firstVideo.readyState < 1) {
+  firstVideo.addEventListener('loadedmetadata', () => { loadTasks.firstVideo = true; }, { once: true });
+} else {
+  loadTasks.firstVideo = true;
+}
+
+// Запобіжник — якщо якийсь ресурс завис (заблокований запит тощо),
+// лоадер все одно не залишиться на екрані назавжди.
+setTimeout(() => {
+  loadTasks.fonts = loadTasks.windowLoad = loadTasks.firstVideo = true;
+}, 6000);
+
 const loaderTick = setInterval(() => {
-  lp = Math.min(lp + Math.random() * 9 + 2, 100);
+  const target = targetProgress();
+  lp += (target - lp) * 0.15;
+  if (target >= 100 && target - lp < 0.5) lp = 100;
   lbar.style.width = lp + '%';
   lpct.textContent = Math.floor(lp) + '%';
   if (lp >= 100) {
@@ -410,8 +451,6 @@ if (shouldShowHero !== heroRevealed) {
   heroRevealed = shouldShowHero;
 
   document.getElementById('main-nav')?.classList.toggle('show', shouldShowHero);
-  document.getElementById('pg-counter')?.classList.toggle('show', shouldShowHero);
-  document.getElementById('theme-dots')?.classList.toggle('show', shouldShowHero);
   document.querySelectorAll('.hero-reveal').forEach(el => el.classList.toggle('show', shouldShowHero));
 
   if (shouldShowHero && !explosionFired && (clock.getElapsedTime() - lastExplosionAt > 1.2)) {
@@ -464,28 +503,36 @@ const spiral = (() => {
     return { tick() {} };
   }
   const N = cards.length;
-  const isMob = window.innerWidth <= 768;
+  // USE_SPIRAL_LAYOUT (і, отже, цей код) активний лише коли !IS_MOBILE_DEVICE,
+  // а це вже враховує innerWidth<=768 — тож на момент старту ми завжди в
+  // "десктопній" гілці. Значення нижче фіксовані, щоб resize вікна без
+  // перезавантаження сторінки не міг наполовину перемкнути геометрію
+  // спіралі, лишаючи layout у неузгодженому стані (клас .linear-list все
+  // одно не додається без reload).
+  // zOffset = -R, щоб максимальний z фронтальної картки був 0 — інакше
+  // CSS-перспектива магнітить картку понад її задекларований розмір,
+  // і вона обрізається зверху/знизу на низьких вьюпортах.
   const S = {
-    R: isMob ? 280 : 640, pitch: isMob ? 250 : 320, zOffset: isMob ? -160 : -260, faceStrength: isMob ? 32 : 48, tiltX: 0,
+    R: 640, pitch: 320, zOffset: -640, faceStrength: 48, tiltX: 0,
     backBlurMax: 12, backOpacityMin: 0.22, frontOpacityMin: 0.98,
     backThreshold: 0, cameraLerp: 0.1, focusSharpness: 12.0, scrollLerp: 0.08,
   };
-  window.addEventListener('resize', () => {
-    const m = window.innerWidth <= 768;
-    S.R          = m ? 320 : 640;
-    S.pitch      = m ? 200 : 320;
-    S.zOffset    = m ? -160 : -260;
-    S.faceStrength = m ? 32 : 48;
-  }, { passive: true });
 
-  
-let camX = 0, camY = 0, scrollT = 0, prevFrontIdx = -1;
+let camX = 0, camY = 0, scrollT = 0;
 const hoverScale = new Array(N).fill(1);
 const smoothHover = new Array(N).fill(1);
 cards.forEach((card, i) => {
   card.addEventListener('mouseenter', () => { hoverScale[i] = 1.06; });
   card.addEventListener('mouseleave', () => { hoverScale[i] = 1; });
 });
+const lastTf = new Array(N).fill('');
+const lastFilt = new Array(N).fill('');
+const lastOpacity = new Array(N).fill('');
+const lastZIdx = new Array(N).fill(null);
+const lastPhotoTf = new Array(N).fill('');
+const lastPhotoFilt = new Array(N).fill('');
+const lastPhotoOpacity = new Array(N).fill('');
+const lastPhotoZIdx = new Array(N).fill(null);
 
   function getRawProgress() {
     const rect     = section.getBoundingClientRect();
@@ -526,14 +573,6 @@ cards.forEach((card, i) => {
       camX = lerpDt(camX, -tX, S.cameraLerp, dt);
       camY = lerpDt(camY, -tY, S.cameraLerp, dt);
 
-      let frontIdx = 0, maxF = 0;
-      poses.forEach((p, i) => { if (p.facing > maxF) { maxF = p.facing; frontIdx = i; } });
-      if (frontIdx !== prevFrontIdx) {
-        if (prevFrontIdx >= 0) cards[prevFrontIdx].classList.remove('is-front');
-        cards[frontIdx].classList.add('is-front');
-        prevFrontIdx = frontIdx;
-      }
-
       poses.forEach(({ a, x, y, z, facing }, i) => {
         const x2   = x + camX, y2 = y + camY;
         const yaw  = Math.cos(a) * -S.faceStrength;
@@ -544,27 +583,31 @@ cards.forEach((card, i) => {
         const opacity = isBack
           ? lerp(S.backOpacityMin, .55, facing / S.backThreshold)
           : lerp(S.frontOpacityMin, 1, (facing - S.backThreshold) / (1 - S.backThreshold));
-        
-     
+
+
 const baseScale = lerp(.84, 1.03, Math.pow(facing, 1.9));
 smoothHover[i] = lerpDt(smoothHover[i], hoverScale[i], 0.12, dt);
 const scale = baseScale * smoothHover[i];
         const zIdx  = Math.round((z - S.zOffset + S.R) * 10);
         const tf    = `translate3d(-50%,-50%,0) translate3d(${x2.toFixed(1)}px,${y2.toFixed(1)}px,${z.toFixed(1)}px) rotateY(${yaw.toFixed(2)}deg) rotateX(${S.tiltX}deg) scale(${scale.toFixed(3)})`;
         const filt  = blur > .1 ? `blur(${blur.toFixed(2)}px)` : '';
+        const opacityStr = opacity.toFixed(3);
 
-        cards[i].style.transform    = tf;
-        cards[i].style.filter       = filt;
-        cards[i].style.opacity      = opacity.toFixed(3);
-        cards[i].style.zIndex       = zIdx;
+        // Пишемо в DOM лише при реальній зміні — постійний перезапис transform
+        // на елементі з will-change:transform зайве навантажує compositor.
+        if (tf !== lastTf[i]) { cards[i].style.transform = tf; lastTf[i] = tf; }
+        if (filt !== lastFilt[i]) { cards[i].style.filter = filt; lastFilt[i] = filt; }
+        if (opacityStr !== lastOpacity[i]) { cards[i].style.opacity = opacityStr; lastOpacity[i] = opacityStr; }
+        if (zIdx !== lastZIdx[i]) { cards[i].style.zIndex = zIdx; lastZIdx[i] = zIdx; }
         const canTap = window.innerWidth <= 768 ? true : facing > .4;
         cards[i].style.pointerEvents = canTap ? 'auto' : 'none';
 
         if (photos[i]) {
-          photos[i].style.transform = tf;
-          photos[i].style.filter    = filt;
-          photos[i].style.opacity   = (opacity * .97).toFixed(3);
-          photos[i].style.zIndex    = zIdx - 1;
+          const photoOpacity = (opacity * .97).toFixed(3);
+          if (tf !== lastPhotoTf[i]) { photos[i].style.transform = tf; lastPhotoTf[i] = tf; }
+          if (filt !== lastPhotoFilt[i]) { photos[i].style.filter = filt; lastPhotoFilt[i] = filt; }
+          if (photoOpacity !== lastPhotoOpacity[i]) { photos[i].style.opacity = photoOpacity; lastPhotoOpacity[i] = photoOpacity; }
+          if (zIdx - 1 !== lastPhotoZIdx[i]) { photos[i].style.zIndex = zIdx - 1; lastPhotoZIdx[i] = zIdx - 1; }
         }
       });
     }
@@ -681,11 +724,11 @@ const scale = baseScale * smoothHover[i];
 
 
 /* ─────────────────────────────────────────────
-    Start EVENTS  —  Zoom, themes, page counter 
+    Start EVENTS  —  Zoom, themes, page counter
    ───────────────────────────────────────────── */
 
    /* ─────────────────────────────────────────────
-    start zoom contect 
+    start zoom contect
    ───────────────────────────────────────────── */
 
 const PROJECTS = [
@@ -762,7 +805,7 @@ const PROJECTS = [
   },
 ];
 /* ─────────────────────────────────────────────
-    end zoom contect 
+    end zoom contect
    ───────────────────────────────────────────── */
 
 let zoomCurrentProject = null;
@@ -811,12 +854,11 @@ function openZoom(projIdx, sourceArr) {
     if (item.type === 'video') {
       const video = document.createElement('video');
       video.src = item.src;
-      video.autoplay = true;
-      video.muted = true;
-      video.loop = true;
-      video.playsInline = true;
       video.preload = 'metadata';
+      configureAutoplayVideo(video);
       zoomGrid.appendChild(video);
+      video.addEventListener('loadedmetadata', () => playIfPossible(video), { once: true });
+      playIfPossible(video);
       return;
     }
     const img = document.createElement('img');
@@ -883,8 +925,6 @@ document.addEventListener('keydown', e => {
   if (e.key === 'Escape') closeZoom();
 });
 
-document.querySelectorAll('#spiral .card .card-hit').forEach(el => el.remove());
-
 document.querySelectorAll('#spiral .card').forEach(card => {
   if (card.dataset.zoomBound === '1') return;
   // Desktop/mouse fallback
@@ -935,17 +975,15 @@ spiralTrackEl?.addEventListener('pointerup', e => {
 }, { passive: false });
 
 
-document.querySelectorAll('.tdot').forEach(dot => dot.addEventListener('click', () => applyTheme(dot.dataset.t)));
-
 const sections  = ['s-home','s-work','s-about','s-contact'].map(id => document.getElementById(id));
 
 
 /* ─────────────────────────────────────────────
-    MORE WORK CAROUSEL  
+    MORE WORK CAROUSEL
    ───────────────────────────────────────────── */
 
     /* ─────────────────────────────────────────────
-    start CAROUSEL contect 
+    start CAROUSEL contect
    ───────────────────────────────────────────── */
 
 const MORE_PROJECTS = [
@@ -982,11 +1020,11 @@ const MORE_PROJECTS = [
   desc: 'Visual communication for a research startup developing soil contamination detection tools. Shaped how the project is presented across pitches, exhibitions, and public platforms, producing video, graphics, and spatial materials that translate scientific data into clear narratives. The project received multiple international recognitions, including 1st Place at Falling Walls Lab Switzerland and Overall Winner at BioDesign Challenge 2025.',
   meta: '<strong>Role:</strong> Visual Communication & Production <br><strong>Tools:</strong> Adobe Suite, Blender <br><strong>Year:</strong> 2025',
   images: [
-    { type: 'video', src: 'https://res.cloudinary.com/ddkjvt1t8/video/upload/v1778094645/CHORNOZEM2-_Agrifood_-_New_Food_Summit_2025_5_b2k8fw_qaspyg.mp4'}, 
-    { type: 'img', src: 'https://res.cloudinary.com/ddkjvt1t8/image/upload/v1778096548/chornozem_falling_walls_ofovk9.png'}, 
+    { type: 'video', src: 'https://res.cloudinary.com/ddkjvt1t8/video/upload/v1778094645/CHORNOZEM2-_Agrifood_-_New_Food_Summit_2025_5_b2k8fw_qaspyg.mp4'},
+    { type: 'img', src: 'https://res.cloudinary.com/ddkjvt1t8/image/upload/v1778096548/chornozem_falling_walls_ofovk9.png'},
     { type: 'img', src: 'https://res.cloudinary.com/ddkjvt1t8/image/upload/v1778096594/chornozem_vdid_o9yruj.jpg' },
     { type: 'img', src: 'https://res.cloudinary.com/ddkjvt1t8/image/upload/v1778096659/chornozem_app_pja1yz.png' },
-    
+
   ],
 },
    {
@@ -997,10 +1035,10 @@ const MORE_PROJECTS = [
   meta: '<strong>Role:</strong> Visual Designer <br><strong>Tools:</strong>Unreal Engine, Motion Builder<br><strong>Year:</strong> 2024',
   images: [
     { type: 'img', src: 'https://res.cloudinary.com/ddkjvt1t8/image/upload/v1778094637/Kaleidoscope1_mwmfei_cn1fws.jpg' },
-    { type: 'video', src: 'https://res.cloudinary.com/ddkjvt1t8/video/upload/v1778097076/21_March_2024_-_ROTATE_-_Videobolt.net_pzsk4p.mp4'}, 
+    { type: 'video', src: 'https://res.cloudinary.com/ddkjvt1t8/video/upload/v1778097076/21_March_2024_-_ROTATE_-_Videobolt.net_pzsk4p.mp4'},
     { type: 'img', src: 'https://res.cloudinary.com/ddkjvt1t8/image/upload/v1778096932/Kaleidoscope4_s3276t.jpg' },
     { type: 'img', src: 'https://res.cloudinary.com/ddkjvt1t8/image/upload/v1778094626/Kaleidoscope_2_b1wwck.png' },
-   
+
   ],
 },
   {
@@ -1016,7 +1054,7 @@ const MORE_PROJECTS = [
 ];
 
    /* ─────────────────────────────────────────────
-    end CAROUSEL contect 
+    end CAROUSEL contect
    ───────────────────────────────────────────── */
 
 /* ─────────────────────────────────────────────
