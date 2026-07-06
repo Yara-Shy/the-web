@@ -167,7 +167,7 @@ const CFG = {
   dpr    : Math.min(devicePixelRatio, IS_MOBILE_DEVICE ? 1.25 : 2),
   explode: { duration: 2_000 },
 };
-const CAM = { FAR_Z: 28, NEAR_Z: 15, SPIRAL_Z: 3.5, Y: 5, HERO_X: -10 };
+const CAM = { FAR_Z: 28, NEAR_Z: 15, SPIRAL_Z: 3.5, Y: 5 };
 
 
 /* ─────────────────────────────────────────────
@@ -425,8 +425,9 @@ window.addEventListener('orientationchange', () => updateStableViewportHeight(tr
 // preZoom-переходу під час скролу через #s-home-wrapper.
 let camTargetZ  = IS_MOBILE_DEVICE ? CAM.SPIRAL_Z : CAM.FAR_Z;
 let camCurrentZ = IS_MOBILE_DEVICE ? CAM.SPIRAL_Z : CAM.FAR_Z;
-let camTargetX  = IS_MOBILE_DEVICE ? -6 : 0;
-let camCurrentX = IS_MOBILE_DEVICE ? -6 : 0;
+// -7.5 замість -6 — трохи зсуває сферу вправо на початковій позиції (мобільні).
+let camTargetX  = IS_MOBILE_DEVICE ? -7.5 : 0;
+let camCurrentX = IS_MOBILE_DEVICE ? -7.5 : 0;
 let scrollCueGone = false, heroRevealed = IS_MOBILE_DEVICE, explosionFired = IS_MOBILE_DEVICE;
 let lastExplosionAt = -10;
 // heroRevealed тепер реактивний — відображає поточний стан, а не "чи спрацював колись"
@@ -452,7 +453,9 @@ function computeCameraTarget() {
     camTargetZ = CAM.SPIRAL_Z;
     const centerP = Math.min(spiralP / 0.25, 1);
     const centerE = centerP < .5 ? 2*centerP*centerP : 1 - Math.pow(-2*centerP+2, 2)/2;
-    camTargetX = -6 * (1 - centerE);
+    // isMobile: узгоджено з початковим зсувом -7.5, щоб не було стрибка
+    // camTargetX на межі входу в спіраль.
+    camTargetX = (isMobile ? -7.5 : -6) * (1 - centerE);
     return;
   }
 
@@ -461,7 +464,7 @@ function computeCameraTarget() {
     // спіраллю" з першого кадру — жодної анімації наближення чи preZoom,
     // #s-home-wrapper слугує лише коротким статичним буфером скролу.
     camTargetZ = CAM.SPIRAL_Z;
-    camTargetX = -6;
+    camTargetX = -7.5;
     return;
   }
 
@@ -551,8 +554,8 @@ let camX = 0, camY = 0, scrollT = 0;
 const hoverScale = new Array(N).fill(1);
 const smoothHover = new Array(N).fill(1);
 cards.forEach((card, i) => {
-  card.addEventListener('mouseenter', () => { hoverScale[i] = 1.06; });
-  card.addEventListener('mouseleave', () => { hoverScale[i] = 1; });
+  card.addEventListener('mouseenter', () => { hoverScale[i] = 1.06; card.classList.add('is-hovered'); });
+  card.addEventListener('mouseleave', () => { hoverScale[i] = 1; card.classList.remove('is-hovered'); });
 });
 const lastTf = new Array(N).fill('');
 const lastFilt = new Array(N).fill('');
@@ -628,8 +631,6 @@ const scale = baseScale * smoothHover[i];
         if (filt !== lastFilt[i]) { cards[i].style.filter = filt; lastFilt[i] = filt; }
         if (opacityStr !== lastOpacity[i]) { cards[i].style.opacity = opacityStr; lastOpacity[i] = opacityStr; }
         if (zIdx !== lastZIdx[i]) { cards[i].style.zIndex = zIdx; lastZIdx[i] = zIdx; }
-        const canTap = window.innerWidth <= 768 ? true : facing > .4;
-        cards[i].style.pointerEvents = canTap ? 'auto' : 'none';
 
         if (photos[i]) {
           const photoOpacity = (opacity * .97).toFixed(3);
@@ -638,6 +639,28 @@ const scale = baseScale * smoothHover[i];
           if (photoOpacity !== lastPhotoOpacity[i]) { photos[i].style.opacity = photoOpacity; lastPhotoOpacity[i] = photoOpacity; }
           if (zIdx - 1 !== lastPhotoZIdx[i]) { photos[i].style.zIndex = zIdx - 1; lastPhotoZIdx[i] = zIdx - 1; }
         }
+      });
+
+      // Нативний :hover погано працює на розвернутих під кутом (rotateY)
+      // картках — реальна форма спотворена перспективою, тому наведення
+      // "губиться", щойно картка не строго по центру. Тому щокадру самі
+      // рахуємо наведення для карток, які й так помітні (facing > поріг) —
+      // зазвичай це 1-2 картки, не всі 6, тож дешево.
+      const HOVER_FACING_MIN = 0.5;
+      const HOVER_PAD = 40; // запас навколо реальних меж картки для "чутливості"
+      poses.forEach((p, i) => {
+        if (p.facing <= HOVER_FACING_MIN) {
+          if (hoverScale[i] !== 1) {
+            hoverScale[i] = 1;
+            cards[i].classList.remove('is-hovered');
+          }
+          return;
+        }
+        const rect = cards[i].getBoundingClientRect();
+        const isHovered = mouse.x >= rect.left - HOVER_PAD && mouse.x <= rect.right + HOVER_PAD
+          && mouse.y >= rect.top  - HOVER_PAD && mouse.y <= rect.bottom + HOVER_PAD;
+        hoverScale[i] = isHovered ? 1.06 : 1;
+        cards[i].classList.toggle('is-hovered', isHovered);
       });
     }
   };
@@ -1004,9 +1027,6 @@ spiralTrackEl?.addEventListener('pointerup', e => {
 }, { passive: false });
 
 
-const sections  = ['s-home','s-work','s-about','s-contact'].map(id => document.getElementById(id));
-
-
 /* ─────────────────────────────────────────────
     MORE WORK CAROUSEL
    ───────────────────────────────────────────── */
@@ -1176,4 +1196,3 @@ document.getElementById('copyEmail').addEventListener('click', function() {
       document.getElementById('emailText').textContent = 'yaroslava.shylyk@outlook.com';
     });
   });
-
