@@ -6,7 +6,7 @@
   --ct: #fff;
   --cm: rgba(255, 255, 255, 0.42);
   --ease: cubic-bezier(0.77, 0, 0.175, 1);
-  --card-w: min(68vw, 520px);
+  --card-w: min(86vw, 778px, 108vh);
   --card-h: calc(var(--card-w) * 0.62);
   --glass-r: 18px;
   --photo-r: 15px;
@@ -33,6 +33,27 @@ body {
 @media (pointer: coarse) {
   body { cursor: auto; }
   #cur, #cur-ring { display: none; }
+}
+
+/* Клавіатурна навігація — свій outline замість дефолтного браузерного,
+   бо cursor:none прибирає звичайні візуальні підказки для миші. */
+a:focus-visible,
+button:focus-visible,
+.btn:focus-visible,
+.cl:focus-visible,
+.tag:focus-visible,
+.mc-arrow:focus-visible,
+.embla__dot:focus-visible,
+.zoom-close:focus-visible {
+  outline: 2px solid var(--c2);
+  outline-offset: 3px;
+}
+.card:focus-visible::after {
+  border-color: rgba(0, 229, 255, 0.9);
+  box-shadow:
+    0 0 100px rgba(74, 237, 255, 0.9),
+    0 0 100px rgba(0, 229, 255, 0.6),
+    inset 0 0 20px rgba(0, 229, 255, 0.404);
 }
 #s-home-wrapper, #s-work, #s-contact {
   overflow-x: clip;
@@ -61,8 +82,8 @@ body {
   transition: width .3s var(--ease), height .3s var(--ease), border-color .3s;
 }
 /* курсор мишки*/
-body:has(a:hover, .btn:hover, .tdot:hover) #cur { width: 4px; height: 4px; background: var(--c1); }
-body:has(a:hover, .btn:hover, .tdot:hover) #cur-ring { width: 64px; height: 64px; border-color: var(--c1); }
+body:has(a:hover, .btn:hover) #cur { width: 4px; height: 4px; background: var(--c1); }
+body:has(a:hover, .btn:hover) #cur-ring { width: 64px; height: 64px; border-color: var(--c1); }
 
 body:has(.card:hover) #cur { width: 14px; height: 14px; background: var(--c2); }
 body:has(.card:hover) #cur-ring { width: 80px; height: 80px; border-color: var(--c2); }
@@ -152,7 +173,7 @@ nav * { pointer-events: all; }
   font-size: clamp(2.25rem, 7vw, 7rem);
   font-weight: 700; line-height: .85; letter-spacing: .04em;
   margin-bottom: 2rem;
-  
+
 }
 .hero-name .line { display: block; }
 
@@ -186,10 +207,6 @@ nav * { pointer-events: all; }
 
 #s-work { min-height: auto; padding: 0; }
 .spiral-section { height: 600vh; position: relative; z-index: 10; }
-
-@media (max-width: 768px) {
-  .spiral-section { height: 200vh; }
-}
 .spiral-header { position: absolute; top: 0; left: 2.8rem; padding-top: 8rem; z-index: 20; }
 .sticky { position: sticky; top: 0; height: 100vh; display: grid; place-items: center; overflow: hidden; background: transparent; }
 .stage { width: 100%; height: 100%; perspective: var(--perspective-depth); perspective-origin: center; display: grid; place-items: center; background: transparent; }
@@ -299,7 +316,7 @@ nav * { pointer-events: all; }
 }
 .card:hover::after {
   border-color: rgba(0, 229, 255, 0.9);
-  box-shadow: 
+  box-shadow:
     0 0 100px rgba(74, 237, 255, 0.9),
     0 0 100px rgba(0, 229, 255, 0.6),
     inset 0 0 20px rgba(0, 229, 255, 0.404);
@@ -307,21 +324,6 @@ nav * { pointer-events: all; }
 .card::before {
   display: none;
 }
-.card-hit {
-  position: absolute;
-  left: 1rem;
-  right: 1rem;
-  bottom: 1rem;
-  height: min(34%, 120px);
-  background: transparent;
-  border: 0;
-  padding: 0;
-  z-index: 9;
-  cursor: pointer;
-  pointer-events: auto;
-  touch-action: pan-y;
-}
-
 .meta {
   position: absolute; inset: 0;
   z-index: 5;
@@ -379,12 +381,6 @@ nav * { pointer-events: all; }
   .meta .desc { font-size: .70rem; line-height: 1 ; margin-top: .1rem;  }
   .meta .cta-link { font-size: 3rem; margin-top: .1rem; padding: .2rem .3rem; }
   .meta-tag { font-size: .49rem; padding: .15rem .4rem; }
-  .card-hit {
-    left: .7rem;
-    right: .7rem;
-    bottom: .7rem;
-    height: min(40%, 130px);
-  }
 }
 
 
@@ -410,15 +406,6 @@ nav * { pointer-events: all; }
 .cl { font-size: clamp(.85rem, 4vw, 1.2rem); letter-spacing: .01em; color: var(--cm); text-decoration: none; display: flex; align-items: center; gap: 1rem; transition: color .3s, gap .35s var(--ease); width: fit-content; background: none; border: none; padding: 0; cursor: none; font-family: 'DM Mono', monospace; user-select: none; }
 .cl:hover { color: #fff; gap: 1.4rem; }
 .cl-arr { color: var(--c1); }
-
-.theme-dots { position: fixed; bottom: 2.2rem; left: 2.8rem; z-index: 300; display: flex; gap: .7rem; align-items: center; opacity: 0; transition: opacity .8s; }
-.theme-dots.show { opacity: 1; }
-.tdot { width: 10px; height: 10px; border-radius: 50%; cursor: none; border: 1px solid rgba(255,255,255,.3); transition: transform .3s, border-color .3s; }
-.tdot:hover { transform: scale(1.4); border-color: #fff; }
-.tdot[data-t="nebula"] { background: #00ffff; }
-.tdot[data-t="sunset"] { background: #ff8c00; }
-.tdot[data-t="forest"] { background: #00ff7f; }
-.tdot[data-t="aurora"] { background: #9932cc; }
 
 
 @media (max-width: 768px) {
@@ -465,7 +452,7 @@ nav * { pointer-events: all; }
   position: absolute; top: 1.2rem; right: 1.2rem; z-index: 10;
   background: none; border: 1.5px;
   border-color: rgba(0, 229, 255, 0.9);
-  box-shadow: 
+  box-shadow:
     0 0 2px rgba(74, 237, 255, 0.9),
     inset 0 0 2px rgba(0, 229, 255, 0.404);
   color: rgba(0, 229, 255, 0.9); font-size: .75rem; cursor: none;
@@ -473,7 +460,7 @@ nav * { pointer-events: all; }
   display: flex; align-items: center; justify-content: center;
   transition: border-color .3s, color .3s;
 }
-.zoom-close:hover { border-color: var(--c1); color: var(--c1); box-shadow: 
+.zoom-close:hover { border-color: var(--c1); color: var(--c1); box-shadow:
     0 0 2px#ff2d6b80,
     inset 0 0 2px#ff2d6b80;}
 
@@ -795,6 +782,46 @@ nav * { pointer-events: all; }
   }
   .contact-photo {
     aspect-ratio: 4/3;
+  }
+}
+
+.impressum {
+  position: relative; z-index: 10;
+  padding: 5rem 2.8rem;
+  border-top: 1px solid rgba(255,255,255,.06);
+}
+.impressum-grid {
+  display: grid;
+  grid-template-columns: 1fr 2fr;
+  gap: 4rem;
+  align-items: start;
+  width: 100%;
+}
+.impressum-title,
+.impressum-heading {
+  font-family: "pacaembu", sans-serif;
+  font-size: clamp(1.4rem, 2.2vw, 1.9rem);
+  font-weight: 400;
+  margin-bottom: 1.3rem;
+  color: #fff;
+}
+.impressum-info p,
+.impressum-right p {
+  font-size: .76rem;
+  line-height: 2.1;
+  color: var(--cm);
+  margin-bottom: 1.1rem;
+}
+.impressum-name { color: rgba(255,255,255,.7); }
+.impressum-email a { color: var(--c2); text-decoration: none; }
+.impressum-email a:hover { text-decoration: underline; }
+.impressum-right p:last-child { margin-bottom: 0; }
+
+@media (max-width: 768px) {
+  .impressum { padding: 2.5rem 1.4rem; }
+  .impressum-grid {
+    grid-template-columns: 1fr;
+    gap: 2rem;
   }
 }
 
