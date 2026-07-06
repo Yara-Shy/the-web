@@ -421,9 +421,10 @@ window.addEventListener('orientationchange', () => updateStableViewportHeight(tr
    CAMERA TARGET  —  обчислюється зі scrollState
    ───────────────────────────────────────────── */
 // На мобільних hero показується одразу (без наближення сфери й вибуху),
-// тож камера стартує вже в "розкритій" позиції, а не FAR_Z.
-let camTargetZ  = IS_MOBILE_DEVICE ? CAM.NEAR_Z : CAM.FAR_Z;
-let camCurrentZ = IS_MOBILE_DEVICE ? CAM.NEAR_Z : CAM.FAR_Z;
+// і камера стартує вже в позиції "перед спіраллю" (SPIRAL_Z) — без окремого
+// preZoom-переходу під час скролу через #s-home-wrapper.
+let camTargetZ  = IS_MOBILE_DEVICE ? CAM.SPIRAL_Z : CAM.FAR_Z;
+let camCurrentZ = IS_MOBILE_DEVICE ? CAM.SPIRAL_Z : CAM.FAR_Z;
 let camTargetX  = IS_MOBILE_DEVICE ? -6 : 0;
 let camCurrentX = IS_MOBILE_DEVICE ? -6 : 0;
 let scrollCueGone = false, heroRevealed = IS_MOBILE_DEVICE, explosionFired = IS_MOBILE_DEVICE;
@@ -455,39 +456,43 @@ function computeCameraTarget() {
     return;
   }
 
+  if (isMobile) {
+    // Мобільна версія: hero вже розкритий і камера вже в позиції "перед
+    // спіраллю" з першого кадру — жодної анімації наближення чи preZoom,
+    // #s-home-wrapper слугує лише коротким статичним буфером скролу.
+    camTargetZ = CAM.SPIRAL_Z;
+    camTargetX = -6;
+    return;
+  }
+
   const showAt = 0.62;
   const hideAt = 0.48;
 
-  // ФАЗА 1 — на мобільних hero вже розкритий одразу після завантаження,
-  // тож камера ніколи не повертається у "нерозкриту" (далеку) позицію,
-  // навіть якщо wrapP тимчасово менший за showAt.
-  const effectiveWrapP = isMobile ? Math.max(wrapP, showAt) : wrapP;
-  const p = Math.min(effectiveWrapP / 0.35, 1);
+  // ФАЗА 1
+  const p = Math.min(wrapP / 0.35, 1);
   const e = p < .5 ? 2*p*p : 1 - Math.pow(-2*p+2, 2)/2;
   camTargetZ = CAM.FAR_Z + (CAM.NEAR_Z - CAM.FAR_Z) * e;
   camTargetX = -6 * e;
 
-  if (!isMobile) {
-    const shouldShowHero = heroRevealed ? wrapP >= hideAt : wrapP >= showAt;
+  const shouldShowHero = heroRevealed ? wrapP >= hideAt : wrapP >= showAt;
 
-    if (shouldShowHero !== heroRevealed) {
-      heroRevealed = shouldShowHero;
+  if (shouldShowHero !== heroRevealed) {
+    heroRevealed = shouldShowHero;
 
-      document.getElementById('main-nav')?.classList.toggle('show', shouldShowHero);
-      document.querySelectorAll('.hero-reveal').forEach(el => el.classList.toggle('show', shouldShowHero));
+    document.getElementById('main-nav')?.classList.toggle('show', shouldShowHero);
+    document.querySelectorAll('.hero-reveal').forEach(el => el.classList.toggle('show', shouldShowHero));
 
-      if (shouldShowHero && !explosionFired && (clock.getElapsedTime() - lastExplosionAt > 1.2)) {
-        explosionFired = true;
-        isExploding    = true;
-        explodeStart   = clock.getElapsedTime();
-        lastExplosionAt = explodeStart;
-      }
+    if (shouldShowHero && !explosionFired && (clock.getElapsedTime() - lastExplosionAt > 1.2)) {
+      explosionFired = true;
+      isExploding    = true;
+      explodeStart   = clock.getElapsedTime();
+      lastExplosionAt = explodeStart;
+    }
 
-      // При поверненні вгору — скидаємо explosionFired,
-      // щоб при наступному скролі вниз вибух спрацював знову
-      if (!shouldShowHero) {
-        explosionFired = false;
-      }
+    // При поверненні вгору — скидаємо explosionFired,
+    // щоб при наступному скролі вниз вибух спрацював знову
+    if (!shouldShowHero) {
+      explosionFired = false;
     }
   }
 
@@ -1171,3 +1176,4 @@ document.getElementById('copyEmail').addEventListener('click', function() {
       document.getElementById('emailText').textContent = 'yaroslava.shylyk@outlook.com';
     });
   });
+
