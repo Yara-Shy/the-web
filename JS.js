@@ -418,6 +418,33 @@ window.addEventListener('orientationchange', () => updateStableViewportHeight(tr
 
 
 /* ─────────────────────────────────────────────
+   SCROLL LOCK  —  коротке "заморожування" скролу (тільки десктоп),
+   щоб момент вибуху/появи hero не можна було проскролити не помітивши.
+   ───────────────────────────────────────────── */
+let scrollLockActive = false;
+
+function lockScrollBriefly(durationMs) {
+  if (scrollLockActive) return;
+  scrollLockActive = true;
+
+  // overflow:hidden робить сторінку взагалі нескролюваною — на відміну від
+  // preventDefault на wheel/touchmove, це зупиняє й інерційний доскрол
+  // (момент, коли трекпад/миша вже "відпущені", але браузер/ОС самі
+  // доскролюють far за фізикою фліку — тут немає нових wheel-подій,
+  // тож preventDefault нічого не перехоплює).
+  const htmlEl = document.documentElement;
+  const prevOverflow = htmlEl.style.overflow;
+
+  htmlEl.style.overflow = 'hidden';
+
+  setTimeout(() => {
+    htmlEl.style.overflow = prevOverflow;
+    scrollLockActive = false;
+  }, durationMs);
+}
+
+
+/* ─────────────────────────────────────────────
    CAMERA TARGET  —  обчислюється зі scrollState
    ───────────────────────────────────────────── */
 // На мобільних hero показується одразу (без наближення сфери й вибуху),
@@ -434,6 +461,9 @@ let lastExplosionAt = -10;
 let sphereAlphaSmooth = 1;
 let sphereSpiralProgressSmooth = 0;
 
+const HERO_SHOW_AT = 0.62;
+const HERO_HIDE_AT = 0.48;
+
 function computeCameraTarget() {
   if (!introReady) return;
   const { wrapP, spiralP, spiralIn, spiralDone, scrollY } = scrollState;
@@ -441,6 +471,37 @@ function computeCameraTarget() {
   if (scrollY > 10 && !scrollCueGone) {
     scrollCueGone = true;
     document.getElementById('scroll-cue').classList.add('gone');
+  }
+
+  // Показ hero перевіряємо ПЕРШИМ, ще до spiralDone/spiralIn — інакше
+  // швидкий проскрол (флік колесом/трекпадом) міг би за один рух пролетіти
+  // повз #s-home-wrapper одразу в spiral, і hero ніколи б не показався.
+  if (!isMobile && !heroRevealed && wrapP >= HERO_SHOW_AT) {
+    const wrapEl = document.getElementById('s-home-wrapper');
+    const rect = wrapEl.getBoundingClientRect();
+    const wrapScrollTotal = rect.height - stableVh;
+    if (wrapScrollTotal > 0) {
+      // Якщо скрол проскочив далі за момент появи hero (швидкий флік) —
+      // повертаємо користувача рівно на цю позицію.
+      const wrapperAbsoluteTop = window.scrollY + rect.top;
+      window.scrollTo({ top: wrapperAbsoluteTop + HERO_SHOW_AT * wrapScrollTotal, behavior: 'instant' });
+      cacheRect(wrapEl);
+    }
+
+    heroRevealed = true;
+    document.getElementById('main-nav')?.classList.add('show');
+    document.querySelectorAll('.hero-reveal').forEach(el => el.classList.add('show'));
+
+    if (!explosionFired && (clock.getElapsedTime() - lastExplosionAt > 1.2)) {
+      explosionFired = true;
+      isExploding    = true;
+      explodeStart   = clock.getElapsedTime();
+      lastExplosionAt = explodeStart;
+      // Коротка пауза скролу — щоб цей момент не можна було проскролити,
+      // не помітивши (тільки десктоп, бо тут єдине місце, де ще є вибух).
+      lockScrollBriefly(900);
+    }
+    return; // цей кадр — лише корекція позиції, решту порахуємо наступного разу
   }
 
   if (spiralDone) {
@@ -468,35 +529,19 @@ function computeCameraTarget() {
     return;
   }
 
-  const showAt = 0.62;
-  const hideAt = 0.48;
-
   // ФАЗА 1
   const p = Math.min(wrapP / 0.35, 1);
   const e = p < .5 ? 2*p*p : 1 - Math.pow(-2*p+2, 2)/2;
   camTargetZ = CAM.FAR_Z + (CAM.NEAR_Z - CAM.FAR_Z) * e;
   camTargetX = -6 * e;
 
-  const shouldShowHero = heroRevealed ? wrapP >= hideAt : wrapP >= showAt;
-
-  if (shouldShowHero !== heroRevealed) {
-    heroRevealed = shouldShowHero;
-
-    document.getElementById('main-nav')?.classList.toggle('show', shouldShowHero);
-    document.querySelectorAll('.hero-reveal').forEach(el => el.classList.toggle('show', shouldShowHero));
-
-    if (shouldShowHero && !explosionFired && (clock.getElapsedTime() - lastExplosionAt > 1.2)) {
-      explosionFired = true;
-      isExploding    = true;
-      explodeStart   = clock.getElapsedTime();
-      lastExplosionAt = explodeStart;
-    }
-
-    // При поверненні вгору — скидаємо explosionFired,
-    // щоб при наступному скролі вниз вибух спрацював знову
-    if (!shouldShowHero) {
-      explosionFired = false;
-    }
+  // Ховаємо hero лише при поверненні вгору нижче hideAt (показ обробляється вище)
+  if (heroRevealed && wrapP < HERO_HIDE_AT) {
+    heroRevealed = false;
+    document.getElementById('main-nav')?.classList.remove('show');
+    document.querySelectorAll('.hero-reveal').forEach(el => el.classList.remove('show'));
+    // Скидаємо explosionFired, щоб при наступному скролі вниз вибух спрацював знову
+    explosionFired = false;
   }
 
   // preZoom — між hero і spiral
