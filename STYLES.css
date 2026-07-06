@@ -125,6 +125,9 @@ body:has(.card:hover) #cur-ring { width: 80px; height: 80px; border-color: var(-
 }
 #scroll-cue.show { opacity: 1; }
 #scroll-cue.gone { opacity: 0; transition: opacity .4s ease; }
+@media (max-width: 768px) {
+  #scroll-cue { display: none; }
+}
 .cue-text { font-size: .95rem; letter-spacing: .22em; text-transform: uppercase; color: rgba(255,255,255,.6); }
 .cue-arrow {
   width: 1px; height: 28px;
@@ -155,6 +158,12 @@ nav * { pointer-events: all; }
   height: 300vh;
   position: relative;
   z-index: 10;
+}
+@media (max-width: 768px) {
+  /* На мобільних hero показується одразу (без анімації наближення),
+     тож не потрібен весь 300vh запас — лишаємо трохи для preZoom-переходу
+     камери в спіраль (JS.js: wrapP > 0.75), а решту "мертвого" скролу прибираємо. */
+  #s-home-wrapper { height: 160vh; }
 }
 #s-home {
   position: sticky; top: 0;
