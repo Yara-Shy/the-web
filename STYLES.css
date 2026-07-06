@@ -33,6 +33,13 @@ body {
 @media (pointer: coarse) {
   body { cursor: auto; }
   #cur, #cur-ring { display: none; }
+  /* backdrop-filter над постійно анімованим WebGL-фоном (сфера/кільця)
+     змушує браузер перераховувати розмиття щокадру — на мобільному GPU
+     це в поєднанні зі скролом (position:sticky) викликає помітне тремтіння. */
+  .btn {
+    backdrop-filter: none;
+    -webkit-backdrop-filter: none;
+  }
 }
 
 /* Клавіатурна навігація — свій outline замість дефолтного браузерного,
