@@ -236,7 +236,7 @@ nav * { pointer-events: all; }
     padding: 8rem 0 4rem;
     display: flex;
     flex-direction: column;
-    gap: 2rem;
+    gap: 5rem;
     transform: none;
   }
   .spiral.linear-list .card {
@@ -249,7 +249,7 @@ nav * { pointer-events: all; }
     z-index: auto !important;
     pointer-events: auto !important;
     width: min(86vw, 560px);
-    height: clamp(240px, 50vw, 360px);
+    height: clamp(280px, 58vw, 420px);
     margin: 0 auto;
     border: 1px solid rgba(0, 229, 255, 0.15);
     box-shadow: 0 0 2px 1px rgba(255,255,255,0.08) inset, 0px 8px 32px rgba(0,0,0,0.5), 0px 32px 80px rgba(0,0,0,0.4);
