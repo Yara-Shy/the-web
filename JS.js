@@ -139,6 +139,12 @@ const loaderTick = setInterval(() => {
       // Кешуємо rect'и після того як loader зник
       cacheRect(document.getElementById('s-home-wrapper'));
       cacheRect(document.getElementById('spiral'));
+      if (IS_MOBILE_DEVICE) {
+        // На мобільних одразу показуємо hero — пропускаємо наближення
+        // сфери й вибух на самому початку скролу.
+        document.getElementById('main-nav')?.classList.add('show');
+        document.querySelectorAll('.hero-reveal').forEach(el => el.classList.add('show'));
+      }
     }, 400);
   }
 }, 55);
@@ -154,11 +160,11 @@ const DESKTOP_IS_LOW_END = !IS_MOBILE_DEVICE && navigator.hardwareConcurrency <=
 const IS_LOW_END = IS_MOBILE_DEVICE || DESKTOP_IS_LOW_END;
 const CFG = {
   // Keep desktop visuals as original, apply tuned values only on mobile.
-  sphere : { count: IS_MOBILE_DEVICE ? 3_000 : (DESKTOP_IS_LOW_END ? 10_000 : 18_000), radius: 5 },
-  rings  : { count: IS_MOBILE_DEVICE ? 3 : (DESKTOP_IS_LOW_END ? 4 : 5), pointsPerRing: IS_MOBILE_DEVICE ? 350 : (DESKTOP_IS_LOW_END ? 1_200 : 2_000), radius: 7.5, thickness: 0.6 },
-  stars  : { count: IS_MOBILE_DEVICE ? 900 : (DESKTOP_IS_LOW_END ? 3_000 : 6_000), spread: 50_000 },
-  bloom  : { strength: IS_MOBILE_DEVICE ? 0.65 : (DESKTOP_IS_LOW_END ? 0.8 : 1.2), threshold: 0, radius: IS_MOBILE_DEVICE ? 0.4 : 0.5 },
-  dpr    : Math.min(devicePixelRatio, IS_MOBILE_DEVICE ? 1 : 2),
+  sphere : { count: IS_MOBILE_DEVICE ? 10_000 : (DESKTOP_IS_LOW_END ? 10_000 : 18_000), radius: 5 },
+  rings  : { count: IS_MOBILE_DEVICE ? 3 : (DESKTOP_IS_LOW_END ? 4 : 5), pointsPerRing: IS_MOBILE_DEVICE ? 500 : (DESKTOP_IS_LOW_END ? 1_200 : 2_000), radius: 7.5, thickness: 0.6 },
+  stars  : { count: IS_MOBILE_DEVICE ? 1_200 : (DESKTOP_IS_LOW_END ? 3_000 : 6_000), spread: 50_000 },
+  bloom  : { strength: IS_MOBILE_DEVICE ? 0.55 : (DESKTOP_IS_LOW_END ? 0.8 : 1.2), threshold: 0, radius: IS_MOBILE_DEVICE ? 0.35 : 0.5 },
+  dpr    : Math.min(devicePixelRatio, IS_MOBILE_DEVICE ? 1.25 : 2),
   explode: { duration: 2_000 },
 };
 const CAM = { FAR_Z: 28, NEAR_Z: 15, SPIRAL_Z: 3.5, Y: 5, HERO_X: -10 };
@@ -188,7 +194,7 @@ const SHADERS = {
 /* ─────────────────────────────────────────────
    GEOMETRY
    ───────────────────────────────────────────── */
-function makeSphere(radius, count, glowSpread = 1) {
+function makeSphere(radius, count, glowSpread = 1, sizeScale = 1) {
   const geo = new THREE.BufferGeometry();
   const pos = new Float32Array(count * 3), col = new Float32Array(count * 3), sz = new Float32Array(count);
   for (let i = 0; i < count; i++) {
@@ -196,7 +202,7 @@ function makeSphere(radius, count, glowSpread = 1) {
     pos[i*3]   = radius * Math.cos(theta) * Math.sin(phi);
     pos[i*3+1] = radius * Math.sin(theta) * Math.sin(phi);
     pos[i*3+2] = radius * Math.cos(phi);
-    sz[i] = Math.random() * 0.2 + 0.1;
+    sz[i] = (Math.random() * 0.2 + 0.1) * sizeScale;
   }
   geo.setAttribute('position', new THREE.BufferAttribute(pos, 3));
   geo.setAttribute('color',    new THREE.BufferAttribute(col, 3));
@@ -320,11 +326,15 @@ if (IS_MOBILE_DEVICE) controls.enabled = false;
 
 const composer  = new EffectComposer(renderer);
 composer.addPass(new RenderPass(scene, camera));
-if (!IS_MOBILE_DEVICE) {
+{
   // Bloom — багатопрохідне розмиття всього екрана щокадру, найдорожча
-  // частина рендеру. На мобільних GPU це і є головна причина глюків/
-  // просідань під час скролу, тому на мобільних просто не додаємо цей pass.
-  const bloomRes = DESKTOP_IS_LOW_END
+  // частина рендеру. На мобільних раніше повністю вимикали — тепер
+  // повертаємо, але на дуже низькій роздільності (~0.16 екрана), що в
+  // рази дешевше за попередню мобільну версію (0.35) і майже не впливає
+  // на плавність скролу, зате дає справжнє "розтікання" світла, як на десктопі.
+  const bloomRes = IS_MOBILE_DEVICE
+    ? new THREE.Vector2(innerWidth*.16, innerHeight*.16)
+    : DESKTOP_IS_LOW_END
     ? new THREE.Vector2(innerWidth*.5, innerHeight*.5)
     : new THREE.Vector2(innerWidth, innerHeight);
   const bloomPass = new UnrealBloomPass(bloomRes, CFG.bloom.strength, CFG.bloom.radius);
@@ -332,10 +342,10 @@ if (!IS_MOBILE_DEVICE) {
   composer.addPass(bloomPass);
 }
 
-// На мобільних немає bloom-постобробки (вимкнена заради продуктивності),
-// тож компенсуємо трохи "живішим" світінням прямо в шейдері сфери —
-// це майже безкоштовно (той самий шейдер, лише softer falloff).
-const sphere    = makeSphere(CFG.sphere.radius, CFG.sphere.count, IS_MOBILE_DEVICE ? 1.8 : 1);
+// uGlowSpread — легке додаткове світіння прямо в шейдері (майже безкоштовно).
+// На мобільних тепер знову є й справжній bloom, тому тут лише невеликий буст,
+// а не повна компенсація відсутнього bloom, як було раніше.
+const sphere    = makeSphere(CFG.sphere.radius, CFG.sphere.count, IS_MOBILE_DEVICE ? 1.4 : 1, IS_MOBILE_DEVICE ? 0.4 : 1);
 const rings     = makeRings(CFG.rings);
 const stars     = makeStars(CFG.stars);
 const mainGroup = new THREE.Group();
@@ -410,11 +420,13 @@ window.addEventListener('orientationchange', () => updateStableViewportHeight(tr
 /* ─────────────────────────────────────────────
    CAMERA TARGET  —  обчислюється зі scrollState
    ───────────────────────────────────────────── */
-let camTargetZ  = CAM.FAR_Z;
-let camCurrentZ = CAM.FAR_Z;
-let camTargetX  = 0;
-let camCurrentX = 0;
-let scrollCueGone = false, heroRevealed = false, explosionFired = false;
+// На мобільних hero показується одразу (без наближення сфери й вибуху),
+// тож камера стартує вже в "розкритій" позиції, а не FAR_Z.
+let camTargetZ  = IS_MOBILE_DEVICE ? CAM.NEAR_Z : CAM.FAR_Z;
+let camCurrentZ = IS_MOBILE_DEVICE ? CAM.NEAR_Z : CAM.FAR_Z;
+let camTargetX  = IS_MOBILE_DEVICE ? -6 : 0;
+let camCurrentX = IS_MOBILE_DEVICE ? -6 : 0;
+let scrollCueGone = false, heroRevealed = IS_MOBILE_DEVICE, explosionFired = IS_MOBILE_DEVICE;
 let lastExplosionAt = -10;
 // heroRevealed тепер реактивний — відображає поточний стан, а не "чи спрацював колись"
 let sphereAlphaSmooth = 1;
@@ -443,35 +455,41 @@ function computeCameraTarget() {
     return;
   }
 
-  // ФАЗА 1
-  const p = Math.min(wrapP / 0.35, 1);
+  const showAt = 0.62;
+  const hideAt = 0.48;
+
+  // ФАЗА 1 — на мобільних hero вже розкритий одразу після завантаження,
+  // тож камера ніколи не повертається у "нерозкриту" (далеку) позицію,
+  // навіть якщо wrapP тимчасово менший за showAt.
+  const effectiveWrapP = isMobile ? Math.max(wrapP, showAt) : wrapP;
+  const p = Math.min(effectiveWrapP / 0.35, 1);
   const e = p < .5 ? 2*p*p : 1 - Math.pow(-2*p+2, 2)/2;
   camTargetZ = CAM.FAR_Z + (CAM.NEAR_Z - CAM.FAR_Z) * e;
   camTargetX = -6 * e;
 
-  const showAt = 0.62;
-  const hideAt = 0.48;
-  const shouldShowHero = heroRevealed ? wrapP >= hideAt : wrapP >= showAt;
+  if (!isMobile) {
+    const shouldShowHero = heroRevealed ? wrapP >= hideAt : wrapP >= showAt;
 
-if (shouldShowHero !== heroRevealed) {
-  heroRevealed = shouldShowHero;
+    if (shouldShowHero !== heroRevealed) {
+      heroRevealed = shouldShowHero;
 
-  document.getElementById('main-nav')?.classList.toggle('show', shouldShowHero);
-  document.querySelectorAll('.hero-reveal').forEach(el => el.classList.toggle('show', shouldShowHero));
+      document.getElementById('main-nav')?.classList.toggle('show', shouldShowHero);
+      document.querySelectorAll('.hero-reveal').forEach(el => el.classList.toggle('show', shouldShowHero));
 
-  if (shouldShowHero && !explosionFired && (clock.getElapsedTime() - lastExplosionAt > 1.2)) {
-    explosionFired = true;
-    isExploding    = true;
-    explodeStart   = clock.getElapsedTime();
-    lastExplosionAt = explodeStart;
+      if (shouldShowHero && !explosionFired && (clock.getElapsedTime() - lastExplosionAt > 1.2)) {
+        explosionFired = true;
+        isExploding    = true;
+        explodeStart   = clock.getElapsedTime();
+        lastExplosionAt = explodeStart;
+      }
+
+      // При поверненні вгору — скидаємо explosionFired,
+      // щоб при наступному скролі вниз вибух спрацював знову
+      if (!shouldShowHero) {
+        explosionFired = false;
+      }
+    }
   }
-
-  // При поверненні вгору — скидаємо explosionFired,
-  // щоб при наступному скролі вниз вибух спрацював знову
-  if (!shouldShowHero) {
-    explosionFired = false;
-  }
-}
 
   // preZoom — між hero і spiral
   if (wrapP > 0.75) {
