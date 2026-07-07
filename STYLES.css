@@ -184,11 +184,11 @@ nav.show .nav-links { opacity: 1; }
   /* На мобільних hero показується одразу (без анімації наближення),
      тож не потрібен весь 300vh запас — лишаємо трохи для preZoom-переходу
      камери в спіраль (JS.js: wrapP > 0.75), а решту "мертвого" скролу прибираємо. */
-  #s-home-wrapper { height: 112vh; }
+  #s-home-wrapper { height: calc(var(--svh, 1vh) * 112); }
 }
 #s-home {
   position: sticky; top: 0;
-  height: 100vh; min-height: unset;
+  height: calc(var(--svh, 1vh) * 100); min-height: unset;
   display: flex; flex-direction: column; justify-content: center;
   padding: 0 2.8rem; padding-top: 6vh;
 }
