@@ -286,6 +286,7 @@ nav * { pointer-events: all; }
     border-radius: var(--glass-r);
   }
   .spiral.linear-list .meta { z-index: 2; }
+  .spiral.linear-list .meta .subtitle { display: none; }
   .spiral-section:has(.spiral.linear-list) { height: auto; }
   .spiral-section:has(.spiral.linear-list) .sticky {
     position: relative;
@@ -398,14 +399,20 @@ nav * { pointer-events: all; }
 }
   .hero-sub {
     max-width: 100%;
-    font-size: calc(1.15rem + var(--text-grow));
-    line-height: 1.7;
+    font-size: calc(.85rem + var(--text-grow) * 0.4);
+    line-height: 1.6;
     word-break: break-word;
     color: #fff;
   }
   .cta-row {
-    flex-wrap: wrap;
-}
+    flex-wrap: nowrap;
+    gap: .6rem;
+  }
+  .btn {
+    font-size: .68rem;
+    padding: .75rem 1.1rem;
+    white-space: nowrap;
+  }
   .meta { left: 0; right: 0; bottom: 0; top: 0; gap: .3rem; padding: 2rem 1rem 1rem; background: linear-gradient(to top, rgba(0,0,0,.92) 0%, rgba(0,0,0,.75) 30%, rgba(0,0,0,.55) 60%, rgba(0,0,0,.4) 100%); }
   .meta h3 { font-size: clamp(2rem, 6.5vw, 2.5rem); }
   .meta .subtitle { font-size: calc(.82rem + var(--text-grow)); }
@@ -600,6 +607,7 @@ nav * { pointer-events: all; }
     overflow: visible;
     display: flex;
     flex-direction: column;
+    padding: 4rem 1.5rem 2rem;
   }
   .zoom-close {
     position: fixed;
@@ -611,24 +619,24 @@ nav * { pointer-events: all; }
   }
   .zoom-title {
     font-size: clamp(2rem, 6.5vw, 2.6rem);
-  }
-  .zoom-right {
-    order: 1;
-    border-left: none;
-    border-bottom: 1px solid rgba(255,255,255,.06);
-    padding: 4rem 1.5rem 1.5rem;
-    overflow: visible;
-  }
-  .zoom-left {
     order: 2;
-    padding: 0 1rem 2rem;
-    overflow: visible;
-    display: block;
   }
-  .zoom-grid {
-    display: flex;
-    flex-direction: column;
-    gap: .6rem;
+  /* zoom-right/zoom-left/zoom-grid більше не власні layout-блоки на мобільній —
+     display:contents "розчиняє" їх, і всі діти (теги/назва/підзаголовок/
+     відео-фото/meta/опис) стають прямими flex-елементами .zoom-inner, тож
+     їх можна вільно переставити через order у потрібну послідовність:
+     теги → назва → тип/рік → головне відео/фото → роль/тулі/рік → інші
+     фото → опис. */
+  .zoom-right, .zoom-left, .zoom-grid, .zoom-grid.single-image {
+    display: contents;
+  }
+  .zoom-tags { order: 1; }
+  .zoom-subtitle { order: 3; }
+  .zoom-meta { order: 5; margin-top: 0; }
+  .zoom-desc {
+    order: 6;
+    padding-top: 1.5rem;
+    border-top: 1px solid rgba(255,255,255,.06);
   }
   .zoom-grid img,
   .zoom-grid video {
@@ -637,10 +645,23 @@ nav * { pointer-events: all; }
     aspect-ratio: 4/3 !important;
     object-fit: cover;
     border-radius: var(--photo-r);
+    margin-bottom: .6rem;
   }
   .zoom-grid img:first-child,
   .zoom-grid video:first-child {
     grid-column: unset;
+    order: 4;
+    margin-top: 1.5rem;
+  }
+  .zoom-grid img:not(:first-child),
+  .zoom-grid video:not(:first-child) {
+    order: 7;
+  }
+  .zoom-grid img:nth-child(2),
+  .zoom-grid video:nth-child(2) {
+    margin-top: 1rem;
+    padding-top: 1.5rem;
+    border-top: 1px solid rgba(255,255,255,.06);
   }
 }
 /* ── MORE WORK CAROUSEL ── */
@@ -733,7 +754,7 @@ nav * { pointer-events: all; }
   transform: translateY(-4px);
 }
 .mc-img {
-  aspect-ratio: 1 / 1;
+  aspect-ratio: 4 / 3;
   overflow: hidden;
   position: relative;
   width: 100%;
@@ -777,13 +798,16 @@ nav * { pointer-events: all; }
   background: linear-gradient(to top, rgba(0,0,0,.92) 0%, rgba(0,0,0,.75) 30%, rgba(0,0,0,.55) 60%, rgba(0,0,0,.4) 100%);
 }
 .mc-meta .meta-tags { display: flex; gap: .4rem; flex-wrap: wrap; margin-bottom: .3rem; }
-.mc-meta .meta-tag { font-size: clamp(.8rem, 1.8vw, 1.02rem); letter-spacing: .1em; text-transform: uppercase; padding: .32rem .7rem; border: 1px solid rgba(0,229,255,.35); color: var(--c2); border-radius: var(--tag-r); background: rgba(0,229,255,.07); }
-.mc-meta .subtitle { font-size: calc(.84rem + var(--text-grow)); letter-spacing: .08em; color: rgba(255,255,255,.5); margin-top: .3rem; }
+.mc-meta .meta-tag { font-size: clamp(.4rem, .8vw, .55rem); letter-spacing: .1em; text-transform: uppercase; padding: .22rem .55rem; border: 1px solid rgba(0,229,255,.35); color: var(--c2); border-radius: var(--tag-r); background: rgba(0,229,255,.07); }
+.mc-meta .subtitle { font-size: calc(.62rem + var(--text-grow)); letter-spacing: .08em; color: rgba(255,255,255,.5); margin-top: .3rem; }
 .mc-bottom-row { display: flex; justify-content: space-between; align-items: flex-end; }
 .mc-meta h3 { margin: 0; font-family: "pacaembu", sans-serif; font-size: clamp(.9rem, 2vw, 1.4rem); font-weight: 400; line-height: 1.05; letter-spacing: -.01em; color: #fff; }
 .mc-meta .cta-link { font-size: 1.6rem; color: var(--c2); flex-shrink: 0; }
 @media (max-width: 768px) {
   .mc-meta h3 { font-size: clamp(1.55rem, 5.8vw, 2.05rem); }
+  .mc-img { aspect-ratio: 5 / 6; }
+  .mc-meta .meta-tag { font-size: clamp(.8rem, 1.8vw, 1.02rem); padding: .32rem .7rem; }
+  .mc-meta .subtitle { font-size: calc(.84rem + var(--text-grow)); }
 }
 
 
