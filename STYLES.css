@@ -5,6 +5,7 @@
   --c4: #b06dff;
   --ct: #fff;
   --cm: rgba(255, 255, 255, 0.42);
+  --cm1: rgb(189, 189, 189);
   --ease: cubic-bezier(0.77, 0, 0.175, 1);
   --card-w: min(86vw, 778px, 108vh);
   --card-h: calc(var(--card-w) * 0.62);
@@ -146,21 +147,30 @@ body:has(.card:hover, .card.is-hovered) #cur-ring { width: 80px; height: 80px; b
 }
 @keyframes cue-pulse { 0%, 100% { opacity: .3; } 50% { opacity: 1; } }
 
+/* Колір .logo/.nav-links тепер керується з JS.js (readPixels з canvas
+   реального кольору сцени позаду) замість mix-blend-mode:difference —
+   var(--cm1) тут лише дефолт до першого семплу / коли семпл "темний". */
 nav {
-  position: fixed; top: 0; left: 0; right: 0; z-index: 500;
-  display: flex; justify-content: space-between; align-items: center;
-  padding: 2rem 2.8rem;
-  background: linear-gradient(to bottom, rgba(0,0,0,.6), transparent);
-  pointer-events: none; opacity: 0; transform: translateY(-12px);
-  transition: opacity .8s var(--ease), transform .8s var(--ease);
+  pointer-events: none;
 }
-nav.show { opacity: 1; transform: translateY(0); pointer-events: all; }
+nav.show { pointer-events: all; }
 nav * { pointer-events: all; }
-.logo { font-family: 'DM Mono', monospace; font-size: .65rem; line-height: 1; letter-spacing: .2em; text-transform: uppercase; color: rgba(255,255,255,.35); text-decoration: none; }
+.logo {
+  position: fixed; top: 2rem; left: 2.8rem; z-index: 500;
+  font-family: 'DM Mono', monospace; font-size: .65rem; line-height: 1; letter-spacing: .2em; text-transform: uppercase; color: var(--cm1); text-decoration: none;
+  opacity: 0; transition: opacity .8s var(--ease), color .3s;
+}
+nav.show .logo { opacity: 1; }
 .logo em { color: var(--c1); font-style: normal; }
-.nav-links { display: flex; align-items: center; gap: 2.2rem; list-style: none; }
+.nav-links {
+  position: fixed; top: 2rem; right: 2.8rem; z-index: 500;
+  display: flex; align-items: center; gap: 2.2rem; list-style: none;
+  opacity: 0; transition: opacity .8s var(--ease), color .3s;
+  color: var(--cm1);
+}
+nav.show .nav-links { opacity: 1; }
 .nav-links li { display: flex; align-items: center; line-height: 1; }
-.nav-links a { font-size: .65rem; line-height: 1; letter-spacing: .18em; text-transform: uppercase; color: var(--cm); text-decoration: none; position: relative; transition: color .3s; }
+.nav-links a { font-size: .65rem; line-height: 1; letter-spacing: .18em; text-transform: uppercase; color: inherit; text-decoration: none; position: relative; transition: color .3s; }
 .nav-links a::after { content: ''; position: absolute; left: 0; bottom: -3px; width: 0; height: 1px; background: var(--c2); transition: width .4s var(--ease); }
 .nav-links a:hover { color: #fff; }
 .nav-links a:hover::after { width: 100%; }
@@ -234,7 +244,6 @@ nav * { pointer-events: all; }
 
 #s-work { min-height: auto; padding: 0; }
 .spiral-section { height: 600vh; position: relative; z-index: 10; }
-.spiral-header { position: absolute; top: 0; left: 2.8rem; padding-top: 8rem; z-index: 20; }
 .sticky { position: sticky; top: 0; height: 100vh; display: grid; place-items: center; overflow: hidden; background: transparent; }
 .stage { width: 100%; height: 100%; perspective: var(--perspective-depth); perspective-origin: center; display: grid; place-items: center; background: transparent; }
 .spiral { position: relative; width: 100%; height: 100%; transform-style: preserve-3d; }
@@ -361,12 +370,6 @@ nav * { pointer-events: all; }
   padding: 1.4rem 1.6rem 1.6rem;
   background: linear-gradient(to top, rgba(0,0,0,.92) 0%, rgba(0,0,0,.75) 30%, rgba(0,0,0,.55) 60%, rgba(0,0,0,.4) 100%);
 }
-.meta-top-row {
-  display: flex;
-  justify-content: space-between;
-  align-items: flex-start;
-}
-
 .meta-bottom-row {
   display: flex;
   justify-content: space-between;
@@ -380,6 +383,9 @@ nav * { pointer-events: all; }
 .meta .cta-link { font-size: 3rem; color: var(--c2); flex-shrink: 0;  margin-right: 1rem; transform: translateY(1rem);  }
 .meta .desc { margin-left: .2rem; font-size: calc(.92rem + var(--text-grow)); line-height: 1.75;  margin-top: .1rem; color: rgba(255,255,255,.45);  }
 .meta h3, .meta .cta-link { pointer-events: auto; touch-action: manipulation; }
+/* На десктопі формат/рік уже показано в .subtitle — не дублюємо їх у desc.
+   Видно лише на мобільній, де .subtitle прихований. */
+.desc-extra { display: none; }
 @media (max-width: 768px) {
   #s-home {
     padding-left: 1.4rem;
@@ -399,24 +405,29 @@ nav * { pointer-events: all; }
 }
   .hero-sub {
     max-width: 100%;
-    font-size: calc(.85rem + var(--text-grow) * 0.4);
+    font-size: calc(.95rem + var(--text-grow) * 0.4);
     line-height: 1.6;
     word-break: break-word;
     color: #fff;
   }
   .cta-row {
     flex-wrap: nowrap;
-    gap: .6rem;
+    gap: clamp(1rem, 4.2vw, 1.6rem);
+    width: 100%;
   }
   .btn {
-    font-size: .68rem;
-    padding: .75rem 1.1rem;
+    flex: 1 1 0;
+    min-width: 0;
+    text-align: center;
+    font-size: clamp(.56rem, 3.2vw, .72rem);
+    padding: clamp(.95rem, 3.6vw, 1.3rem) clamp(.5rem, 2.6vw, 1.1rem);
     white-space: nowrap;
   }
   .meta { left: 0; right: 0; bottom: 0; top: 0; gap: .3rem; padding: 2rem 1rem 1rem; background: linear-gradient(to top, rgba(0,0,0,.92) 0%, rgba(0,0,0,.75) 30%, rgba(0,0,0,.55) 60%, rgba(0,0,0,.4) 100%); }
   .meta h3 { font-size: clamp(2rem, 6.5vw, 2.5rem); }
   .meta .subtitle { font-size: calc(.82rem + var(--text-grow)); }
   .meta .desc { font-size: calc(.82rem + var(--text-grow)); line-height: 1.2 ; margin-top: .1rem;  }
+  .desc-extra { display: inline; }
   .meta .cta-link { font-size: 3rem; margin-top: .1rem; padding: .2rem .3rem; }
   .meta-tag { font-size: calc(.58rem + var(--text-grow)); padding: .2rem .5rem; }
 }
@@ -447,9 +458,12 @@ nav * { pointer-events: all; }
 
 
 @media (max-width: 768px) {
-  nav, .scroll-page { padding-left: 1.4rem; padding-right: 1.4rem; }
+  .scroll-page { padding-left: 1.4rem; padding-right: 1.4rem; }
   .about-grid { grid-template-columns: 1fr; gap: 2rem; }
   .nav-links li:has(a[href="#s-home"]) { display: none; }
+  .logo { left: 1.4rem; }
+  .nav-links { right: 1.4rem; gap: 1.1rem; }
+  .logo, .nav-links a { font-size: .85rem; }
 }
 @media (prefers-reduced-motion: reduce) {
   .spiral-section { height: 120vh; }
@@ -665,8 +679,6 @@ nav * { pointer-events: all; }
   }
 }
 /* ── MORE WORK CAROUSEL ── */
-#s-more { overflow: visible; }
-
 .more-carousel-wrap {
   position: relative;
   padding: 0;
@@ -699,10 +711,6 @@ nav * { pointer-events: all; }
   width: 100%;
   box-sizing: border-box;
   cursor: grab;
-}
-
-.mc-card {
-  transition: border-color .4s var(--ease), box-shadow .4s var(--ease), transform .4s var(--ease);
 }
 
 .more-carousel:active { cursor: grabbing; }
