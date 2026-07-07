@@ -28,6 +28,29 @@ function smoothStep(min, max, value) {
 
 const easeInOut = x => x < .5 ? 4*x*x*x : 1 - Math.pow(-2*x + 2, 3) / 2;
 
+const IS_MOBILE_DEVICE =
+  /Mobi|Android|iPhone|iPad/i.test(navigator.userAgent) ||
+  window.innerWidth <= 768;
+const DESKTOP_IS_LOW_END = !IS_MOBILE_DEVICE && navigator.hardwareConcurrency <= 2;
+const IS_LOW_END = IS_MOBILE_DEVICE || DESKTOP_IS_LOW_END;
+
+// На слабких/мобільних пристроях просимо в Cloudinary менш важкий транскод
+// відео "на льоту" (без переуплоаду) — менше даних і легше декодування.
+// Перевірка "вже оптимізовано" — щоб випадковий повторний виклик не
+// задублював трансформацію в URL.
+function optimizeVideoSrc(url) {
+  if (!IS_LOW_END || typeof url !== 'string' || !url.includes('res.cloudinary.com/') || url.includes('/upload/q_auto:eco')) return url;
+  return url.replace('/upload/', '/upload/q_auto:eco,w_720/');
+}
+
+// Відео в спіральних картках не мають src в HTML (щоб браузер не почав
+// одразу тягнути важку версію під час парсингу) — виставляємо .src самі,
+// одразу оптимізований під пристрій, ще до того як лоадер перевірить
+// готовність першого відео нижче.
+document.querySelectorAll('.card-photo video[data-src]').forEach(video => {
+  video.src = optimizeVideoSrc(video.dataset.src);
+});
+
 
 /* ─────────────────────────────────────────────
    DOM RECT CACHE
@@ -153,11 +176,6 @@ const loaderTick = setInterval(() => {
 /* ─────────────────────────────────────────────
    CONFIG
    ───────────────────────────────────────────── */
-const IS_MOBILE_DEVICE =
-  /Mobi|Android|iPhone|iPad/i.test(navigator.userAgent) ||
-  window.innerWidth <= 768;
-const DESKTOP_IS_LOW_END = !IS_MOBILE_DEVICE && navigator.hardwareConcurrency <= 2;
-const IS_LOW_END = IS_MOBILE_DEVICE || DESKTOP_IS_LOW_END;
 const CFG = {
   // Keep desktop visuals as original, apply tuned values only on mobile.
   sphere : { count: IS_MOBILE_DEVICE ? 10_000 : (DESKTOP_IS_LOW_END ? 10_000 : 18_000), radius: 5 },
@@ -506,7 +524,7 @@ function computeCameraTarget() {
       lastExplosionAt = explodeStart;
       // Коротка пауза скролу — щоб цей момент не можна було проскролити,
       // не помітивши (тільки десктоп, бо тут єдине місце, де ще є вибух).
-      lockScrollBriefly(900);
+      lockScrollBriefly(1200);
     }
     return; // цей кадр — лише корекція позиції, решту порахуємо наступного разу
   }
@@ -763,19 +781,28 @@ const scale = baseScale * smoothHover[i];
   }
 
   /* ── Sphere scale + alpha  ── */
-  const { spiralP, spiralIn, spiralDone } = scrollState;
+  const { wrapP, spiralP, spiralIn, spiralDone } = scrollState;
   const breathe = 1 + Math.sin(t * 1.5) * 0.05;
   let sphereTargetScale = breathe;
   let sphereTargetAlpha = 1;
-  const rawSpiralProgress = spiralIn ? Math.max(0, spiralP - 0.05) : 0;
-  sphereSpiralProgressSmooth = lerpDt(sphereSpiralProgressSmooth, rawSpiralProgress, 0.09, dt);
 
-  if (spiralIn) {
-    sphereTargetScale = breathe * (1 + sphereSpiralProgressSmooth * (isMobile ? 10 : 25));
-    sphereTargetAlpha = Math.max(0, 1 - sphereSpiralProgressSmooth * 5);
-  } else if (spiralDone) {
+  // Ріст стартує трохи раніше — на середині руху камери (preZoom триває
+  // wrapP: 0.75 → 1, середина = 0.875), а не лише коли рух повністю завершено.
+  // preRamp росте тільки до 0.15, тож коли spiralIn-формула (spiralP - 0.05)
+  // теж досягає 0.15 (на spiralP=0.2 — фокус другої картки), обидві гілки
+  // збігаються без стрибка.
+  const preRamp = wrapP > 0.875 ? Math.min(1, (wrapP - 0.875) / 0.125) * 0.15 : 0;
+  const spiralRamp = spiralIn ? Math.max(0, spiralP - 0.05) : 0;
+  const rawSpiralProgress = Math.max(preRamp, spiralRamp);
+  const growthActive = spiralIn || wrapP > 0.875;
+  sphereSpiralProgressSmooth = lerpDt(sphereSpiralProgressSmooth, rawSpiralProgress, 0.022, dt);
+
+  if (spiralDone) {
     sphereTargetAlpha = 0;
     sphereTargetScale = breathe * (isMobile ? 9 : 15);
+  } else if (growthActive) {
+    sphereTargetScale = breathe * (1 + sphereSpiralProgressSmooth * (isMobile ? 10 : 25));
+    sphereTargetAlpha = Math.max(0, 1 - sphereSpiralProgressSmooth * 5);
   } else {
     sphereSpiralProgressSmooth = lerpDt(sphereSpiralProgressSmooth, 0, 0.08, dt);
   }
@@ -957,7 +984,7 @@ function openZoom(projIdx, sourceArr) {
   p.images.forEach(item => {
     if (item.type === 'video') {
       const video = document.createElement('video');
-      video.src = item.src;
+      video.src = optimizeVideoSrc(item.src);
       video.preload = 'metadata';
       configureAutoplayVideo(video);
       zoomGrid.appendChild(video);
@@ -1101,7 +1128,7 @@ spiralTrackEl?.addEventListener('pointerup', e => {
 const MORE_PROJECTS = [
   {
   title: 'Forever Trashed',
-  subtitle: 'Prague · 2023',
+  subtitle: 'Game · Prague, 2023',
   tags: ['3D Environments', '3D Animation', '3D Modeling','Unity'],
   desc: 'Designed and built a game environment, including 3D assets, level structure, and character/object animations. Focused on spatial composition, gameplay flow, and visual coherence across the scene. Presented at FIK (Ústí nad Labem, 2023) and Lektvar (Olomouc, 2023).',
   meta: '<strong>Role:</strong> 3D Artist <br><strong>Tools:</strong> Blender, Unity <br><strong>Year:</strong> 2023',
@@ -1178,7 +1205,7 @@ if (mCarousel) {
 mCarousel.innerHTML = MORE_PROJECTS.map((p, i) => {
     const first = p.images[0];
     const thumb = first.type === 'video'
-      ? `<video src="${first.src}" autoplay muted loop playsinline preload="metadata"></video>`
+      ? `<video src="${optimizeVideoSrc(first.src)}" autoplay muted loop playsinline preload="metadata"></video>`
       : `<img src="${first.src}" alt="${p.title}" loading="lazy" decoding="async"/>`;
     return `
     <div class="embla__slide" data-idx="${i}">
@@ -1186,9 +1213,11 @@ mCarousel.innerHTML = MORE_PROJECTS.map((p, i) => {
         <div class="mc-img">${thumb}</div>
         <div class="mc-meta">
           <div class="meta-tags">${p.tags.map(t => `<span class="meta-tag">${t}</span>`).join('')}</div>
+          <div class="mc-bottom-row">
+            <h3>${p.title}</h3>
+            <span class="cta-link">→</span>
+          </div>
           <div class="subtitle">${p.subtitle}</div>
-          <h3>${p.title}</h3>
-          <span class="cta-link">View Project →</span>
         </div>
       </div>
     </div>
