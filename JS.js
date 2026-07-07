@@ -947,7 +947,12 @@ const zoomOverlay = document.getElementById('zoom-overlay');
 
 function parsePlainMeta(meta) {
   if (typeof meta !== 'string') return '';
-  return meta
+  let m = meta;
+  // На мобільній рік уже показано в описі картки — тут він зайвий.
+  if (IS_MOBILE_DEVICE) {
+    m = m.replace(/<br\s*\/?>\s*<strong>\s*Year:?\s*<\/strong>[^<]*/i, '');
+  }
+  return m
     .replace(/<br\s*\/?>/gi, '\n')
     .replace(/<[^>]*>/g, '')
     .replace(/[ \t]+\n/g, '\n')
