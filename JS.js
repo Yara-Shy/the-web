@@ -70,9 +70,21 @@ function refreshRects() {
   }
 }
 
-// Оновлюємо кеш при скролі і ресайзі — але не в RAF
-window.addEventListener('scroll',  refreshRects, { passive: true });
-window.addEventListener('resize',  refreshRects, { passive: true });
+// 'scroll' може стріляти набагато частіше за кадри (особливо інерційний
+// скрол на мобільних) — синхронний getBoundingClientRect на кожній такій
+// події форсує layout частіше, ніж потрібно, і це сам по собі глючить скрол.
+// RAF-троттлимо: максимум одне реальне оновлення за кадр.
+let rectsRefreshPending = false;
+function scheduleRefreshRects() {
+  if (rectsRefreshPending) return;
+  rectsRefreshPending = true;
+  requestAnimationFrame(() => {
+    rectsRefreshPending = false;
+    refreshRects();
+  });
+}
+window.addEventListener('scroll',  scheduleRefreshRects, { passive: true });
+window.addEventListener('resize',  scheduleRefreshRects, { passive: true });
 
 
 /* ─────────────────────────────────────────────
@@ -428,11 +440,12 @@ function applyHeaderContrast(el) {
 }
 
 let headerColorFrame = 0;
-// Слабкі десктопи (мало ядер) пропускаємо повністю — там і без readPixels
-// вже туго. Мобільні дозволяємо, але семплимо суттєво рідше (раз на ~15
-// кадрів замість ~6), щоб GPU sync від readPixels менше бив по плавності.
-const HEADER_COLOR_ENABLED  = !DESKTOP_IS_LOW_END;
-const HEADER_COLOR_INTERVAL = isMobile ? 15 : 6;
+// Мобільний скрол все ще стрибав навіть після зниження частоти семплів —
+// readPixels форсує GPU sync, і навіть раз на ~15 кадрів цього достатньо,
+// щоб зіпсувати плавність скролу на слабшому мобільному GPU. Пріоритет —
+// плавний скрол, тож на мобільних просто вимикаємо цей ефект повністю.
+const HEADER_COLOR_ENABLED  = !DESKTOP_IS_LOW_END && !isMobile;
+const HEADER_COLOR_INTERVAL = 6;
 
 
 /* ─────────────────────────────────────────────
