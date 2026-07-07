@@ -20,12 +20,6 @@ function lerpDt(current, target, alpha, dt) {
 /** Стандартний lerp без нормалізації — для разових обчислень */
 const lerp = (a, b, t) => a + (b - a) * t;
 
-/** smoothstep — те саме що у GLSL */
-function smoothStep(min, max, value) {
-  const x = Math.max(0, Math.min(1, (value - min) / (max - min)));
-  return x * x * (3 - 2 * x);
-}
-
 const easeInOut = x => x < .5 ? 4*x*x*x : 1 - Math.pow(-2*x + 2, 3) / 2;
 
 const IS_MOBILE_DEVICE =
@@ -388,6 +382,57 @@ if (!isMobile) {
     mouse3D.y = -((e.clientY / innerHeight) * 2 - 1);
   }, { passive: true });
 }
+
+
+/* ─────────────────────────────────────────────
+   HEADER CONTRAST COLOR
+   Замість mix-blend-mode:difference — реально семплимо колір сцени
+   позаду .logo/.nav-links (gl.readPixels) і перемикаємо колір тексту
+   між --c2 (за замовчуванням над "кольоровим" фоном) і --c1 (коли той
+   фон сам синьо-блакитний, щоб не зливався). readPixels форсує GPU sync,
+   тож не робимо цього щокадру — лише раз на ~6 кадрів, і тільки на
+   некоректно "слабких" пристроях (IS_LOW_END) взагалі пропускаємо.
+   ───────────────────────────────────────────── */
+const logoEl     = document.querySelector('.logo');
+const navLinksEl = document.querySelector('.nav-links');
+const glCtx      = renderer.getContext();
+const pixelBuf   = new Uint8Array(4);
+
+function sampleSceneColor(el) {
+  const rect = el.getBoundingClientRect();
+  if (rect.width === 0 && rect.height === 0) return null;
+  const cx = rect.left + rect.width / 2;
+  const cy = rect.top + rect.height / 2;
+  const bx = Math.round(cx * CFG.dpr);
+  const by = Math.round((innerHeight - cy) * CFG.dpr); // WebGL: 0,0 знизу зліва
+  if (bx < 0 || by < 0 || bx >= glCtx.drawingBufferWidth || by >= glCtx.drawingBufferHeight) return null;
+  glCtx.readPixels(bx, by, 1, 1, glCtx.RGBA, glCtx.UNSIGNED_BYTE, pixelBuf);
+  return pixelBuf;
+}
+
+function applyHeaderContrast(el) {
+  if (!el) return;
+  const c = sampleSceneColor(el);
+  if (!c) return;
+  const [r, g, b] = c;
+  const brightness = (r + g + b) / 3;
+  if (brightness < 40) {
+    el.style.color = '';
+    return;
+  }
+  // Білий/нейтральний фон (r≈g≈b) мав раніше хибно потрапляти в "синій"
+  // через незначну перевагу b (згладжування/bloom) — тепер рожевий лише коли
+  // синій справді помітно домінує, а не ледь-ледь. Білий і решта → блакитний.
+  const isStronglyBlue = b > r + 25 && b > g + 10;
+  el.style.color = isStronglyBlue ? 'var(--c1)' : 'var(--c2)';
+}
+
+let headerColorFrame = 0;
+// Слабкі десктопи (мало ядер) пропускаємо повністю — там і без readPixels
+// вже туго. Мобільні дозволяємо, але семплимо суттєво рідше (раз на ~15
+// кадрів замість ~6), щоб GPU sync від readPixels менше бив по плавності.
+const HEADER_COLOR_ENABLED  = !DESKTOP_IS_LOW_END;
+const HEADER_COLOR_INTERVAL = isMobile ? 15 : 6;
 
 
 /* ─────────────────────────────────────────────
@@ -851,6 +896,15 @@ const scale = baseScale * smoothHover[i];
 
   controls.update();
   composer.render();
+
+  /* ── Header contrast color  ── */
+  if (HEADER_COLOR_ENABLED) {
+    headerColorFrame++;
+    if (headerColorFrame % HEADER_COLOR_INTERVAL === 0) {
+      applyHeaderContrast(logoEl);
+      applyHeaderContrast(navLinksEl);
+    }
+  }
 })();
 
 
@@ -939,11 +993,30 @@ const PROJECTS = [
     end zoom contect
    ───────────────────────────────────────────── */
 
-let zoomCurrentProject = null;
-let zoomCurrentImg = 0;
+// На мобільній замість тегів на картках спіралі показуємо роль (у тому ж
+// тег-стилі, на тому ж місці) — самі теги ховати не треба, просто підміняємо
+// їхній вміст.
+if (IS_MOBILE_DEVICE) {
+  document.querySelectorAll('#spiral .card').forEach(card => {
+    const project = PROJECTS[Number.parseInt(card.dataset.idx, 10)];
+    const tagsEl = card.querySelector('.meta-tags');
+    if (!project || !tagsEl) return;
+    const role = extractRole(project.meta);
+    tagsEl.innerHTML = role ? `<span class="meta-tag">${role}</span>` : '';
+  });
+}
+
 const zoomOverlay = document.getElementById('zoom-overlay');
 
 // isMobile вже оголошена вище
+
+// Витягує саме значення поля Role з рядка meta ('<strong>Role:</strong> X<br>...') —
+// використовується на мобільній, щоб показати роль на місці прибраних тегів.
+function extractRole(meta) {
+  if (typeof meta !== 'string') return '';
+  const m = meta.match(/<strong>\s*Role:?\s*<\/strong>\s*([^<]*)/i);
+  return m ? m[1].trim() : '';
+}
 
 function parsePlainMeta(meta) {
   if (typeof meta !== 'string') return '';
@@ -970,8 +1043,6 @@ function openZoom(projIdx, sourceArr) {
   const zoomTags = document.getElementById('zoom-tags');
   const zoomGrid = document.getElementById('zoom-grid');
 
-  zoomCurrentProject = p;
-  zoomCurrentImg = 0;
   zoomTitle.textContent = p.title;
   zoomSubtitle.textContent = p.subtitle;
   zoomDesc.textContent = p.desc;
@@ -1212,12 +1283,16 @@ mCarousel.innerHTML = MORE_PROJECTS.map((p, i) => {
     const thumb = first.type === 'video'
       ? `<video src="${optimizeVideoSrc(first.src)}" autoplay muted loop playsinline preload="metadata"></video>`
       : `<img src="${first.src}" alt="${p.title}" loading="lazy" decoding="async"/>`;
+    // На мобільній замість тегів — роль, у тому ж тег-стилі й на тому ж місці.
+    const tagsHtml = IS_MOBILE_DEVICE
+      ? (extractRole(p.meta) ? `<span class="meta-tag">${extractRole(p.meta)}</span>` : '')
+      : p.tags.map(t => `<span class="meta-tag">${t}</span>`).join('');
     return `
     <div class="embla__slide" data-idx="${i}">
       <div class="mc-card">
         <div class="mc-img">${thumb}</div>
         <div class="mc-meta">
-          <div class="meta-tags">${p.tags.map(t => `<span class="meta-tag">${t}</span>`).join('')}</div>
+          <div class="meta-tags">${tagsHtml}</div>
           <div class="mc-bottom-row">
             <h3>${p.title}</h3>
             <span class="cta-link">→</span>
