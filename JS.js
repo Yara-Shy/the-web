@@ -448,11 +448,31 @@ const scrollState = {
 };
 let stableVh = window.innerHeight;
 
+// Мобільні браузери реально змінюють innerHeight, коли ховається/показується
+// адресний рядок — тож будь-який CSS в "сирих" vh (100vh, 112vh) теж реально
+// перераховується браузером і візуально смикається (не через наш JS!). Пишемо
+// стабілізовану висоту в CSS-змінну --svh (1% від stableVh) — .hero/.wrapper
+// рахують свою висоту через неї, тож більше не реагують на кожне згортання
+// chrome, а лише коли ми свідомо оновлюємо (за порогом нижче).
+function setSvhVar() {
+  document.documentElement.style.setProperty('--svh', (stableVh / 100) + 'px');
+}
+setSvhVar();
+
 function updateStableViewportHeight(force = false) {
   const next = window.innerHeight;
-  // Mobile browser chrome can slightly change innerHeight during scroll.
-  // Ignore tiny changes to keep scroll progress stable and avoid jitter.
-  if (force || Math.abs(next - stableVh) > 120) stableVh = next;
+  // Mobile browser chrome (адресний рядок) ховається/показується залежно
+  // від напрямку скролу — це не одноразова подія, а може повторюватись щоразу,
+  // як юзер скролить вгору-вниз біля hero. Реальна зміна innerHeight від
+  // цього зазвичай ~50-100px. Поріг мав бути 120px "щоб не було зайвого
+  // тремтіння", але через це майже НІКОЛИ не спрацьовував на реальні зміни
+  // chrome — а короткий мобільний #s-home-wrapper (112vh) має лише ~12vh
+  // (85-95px) запасу скролу, тож stableVh, застрягла на 50-100px, перекручує
+  // wrapP майже повністю. Поріг знижено, щоб реальні зміни ловились щоразу.
+  if (force || Math.abs(next - stableVh) > 24) {
+    stableVh = next;
+    setSvhVar();
+  }
 }
 
 function updateScrollState() {
@@ -480,24 +500,9 @@ function updateScrollState() {
 
 window.addEventListener('resize', () => updateStableViewportHeight(false), { passive: true });
 window.addEventListener('orientationchange', () => updateStableViewportHeight(true), { passive: true });
-// Також перевіряємо на scroll — на короткому мобільному #s-home-wrapper (112vh)
-// навіть невелике "застрягання" stableVh (браузерний chrome згортається під
-// час першого скролу) відчутно сильніше розхитує wrapP, бо ділимо на малу
-// відстань. Поріг (>120px) лишається той самий, тож зайвого тремтіння не додає.
-let firstScrollHandled = false;
-window.addEventListener('scroll', () => {
-  // Мобільний браузерний chrome (адресний рядок) майже завжди згортається
-  // саме на перший скрол, а зміна innerHeight часто менша за поріг (>120px),
-  // тож штатна перевірка її мовчки ігнорує — layout (реальний 100vh у CSS)
-  // вже зрушив, а наш кешований stableVh ще ні. Форсуємо оновлення без
-  // порогу рівно один раз, на найпершому скролі, щоб прибрати цей глюк.
-  if (!firstScrollHandled) {
-    firstScrollHandled = true;
-    updateStableViewportHeight(true);
-    return;
-  }
-  updateStableViewportHeight(false);
-}, { passive: true });
+// Також перевіряємо на scroll — chrome ховається/показується залежно від
+// напрямку скролу, тож це має перевірятись на кожному скролі, не лише раз.
+window.addEventListener('scroll', () => updateStableViewportHeight(false), { passive: true });
 
 
 /* ─────────────────────────────────────────────
