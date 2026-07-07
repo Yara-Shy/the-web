@@ -461,6 +461,7 @@ nav.show .nav-links { opacity: 1; }
   .scroll-page { padding-left: 1.4rem; padding-right: 1.4rem; }
   .about-grid { grid-template-columns: 1fr; gap: 2rem; }
   .nav-links li:has(a[href="#s-home"]) { display: none; }
+  .nav-links li:has(a[href="#s-about"]) { display: none; }
   .logo { left: 1.4rem; }
   .nav-links { right: 1.4rem; gap: 1.1rem; }
   .logo, .nav-links a { font-size: .85rem; }
