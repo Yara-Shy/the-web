@@ -240,7 +240,7 @@ nav.show .nav-links { opacity: 1; }
   background: rgba(255, 255, 255, 0.05);
   border-color: var(--c1);
 }
-.btn-ghost:hover { border-color: var(--c1); color: var(--c1); background: rgba(255, 45, 107, 0.08); }
+.btn-ghost:hover { border-color: var(--c2); color: var(--c2); background: rgba(0, 229, 255, 0.08); }
 
 #s-work { min-height: auto; padding: 0; }
 .spiral-section { height: 600vh; position: relative; z-index: 10; }
