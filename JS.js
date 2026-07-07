@@ -1376,9 +1376,21 @@ mCarousel.innerHTML = MORE_PROJECTS.map((p, i) => {
 
   setTimeout(() => embla.reInit(), 0);
 
+  // Той самий глюк, що й на hero: мобільний адресний рядок ховається/
+  // показується залежно від напрямку скролу і генерує 'resize' лише через
+  // зміну innerHeight — карусель горизонтальна, її layout залежить від
+  // ширини, а не висоти, тож reInit на кожен такий resize викликав видимий
+  // стрибок/пересброс під час скролу повз карусель. Реагуємо лише коли
+  // реально змінилась ширина.
   window.addEventListener('resize', (() => {
     let t = null;
-    return () => { clearTimeout(t); t = setTimeout(() => embla.reInit(), 120); };
+    let lastWidth = window.innerWidth;
+    return () => {
+      if (window.innerWidth === lastWidth) return;
+      lastWidth = window.innerWidth;
+      clearTimeout(t);
+      t = setTimeout(() => embla.reInit(), 120);
+    };
   })());
 
   document.querySelector('.mc-prev').addEventListener('click', () => embla.scrollPrev());
