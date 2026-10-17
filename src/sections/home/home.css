@@ -8,10 +8,10 @@
    браузер ховає/показує його під час скролу, тож hero не перебудовується
    під пальцем. vh — фолбек для браузерів без svh. */
 @media (max-width: 768px) {
-  /* На мобільних hero показується одразу (без анімації наближення),
-     тож не потрібен весь 300vh запас — лишаємо трохи для preZoom-переходу
-     камери в спіраль (home.js: wrapP > 0.75), а решту "мертвого" скролу прибираємо. */
-  #s-home-wrapper { height: 112vh; height: 112svh; }
+  /* На мобільних hero показується одразу, без наближення камери й preZoom
+     (home.js, гілка isMobile), тож запас скролу під sticky не потрібен:
+     wrapper = сам hero, і hero скролиться разом зі сторінкою. */
+  #s-home-wrapper { height: auto; }
 }
 #s-home {
   position: sticky; top: 0;
@@ -58,6 +58,10 @@
 
 @media (max-width: 768px) {
   #s-home {
+    /* Без sticky: поки адресний рядок ховається/показується, браузер
+       переобчислює sticky-позицію на main thread, а скрол іде на compositor —
+       hero смикався під пальцем. */
+    position: relative;
     padding-left: 1.4rem;
     padding-right: 1.4rem;
     justify-content: center;

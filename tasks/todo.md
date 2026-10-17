@@ -152,3 +152,9 @@
 - [x] Причина: iOS 26 Safari фарбує зони адресного рядка й нижньої панелі кольором fixed-елементів біля країв екрана (background-color / backdrop-filter), ігноруючи opacity:0 і visibility:hidden — рахується лише display:none. Схований чорний `#loader` і закритий `.zoom-overlay` (fixed, inset:0) лишались «присутніми» → суцільні чорні смуги.
 - [x] Фікс: обидва після fade-out отримують display:none (`transition-behavior: allow-discrete`, для fade-in оверлея — `@starting-style`). Анімації ті самі.
 - [x] Перевірка: fixed-probe.mjs (display none після згасання, fade-in/out як раніше — порівняно зі старим CSS), behaviour.mjs 19/19. Остаточно — на реальному iPhone.
+
+## Fix 5: hero трясеться під час скролу (лише реальні тач-пристрої)
+
+- [x] Причина: `#s-home` — `position: sticky`. Поки мобільний браузер ховає/показує адресний рядок, sticky-позиція переобчислюється на main thread, а скрол іде на compositor → hero смикається. В емуляторі на ПК адресного рядка нема — тому там не відтворюється.
+- [x] Фікс (≤768px): `#s-home { position: relative }`, `#s-home-wrapper { height: auto }`. Sticky на мобільному нічого не давав: hero показується одразу, камера статична (home.js, гілка isMobile), wrapP там не використовується.
+- [ ] Перевірка — на реальному телефоні (емулятор не відтворює).
