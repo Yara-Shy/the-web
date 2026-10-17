@@ -4,27 +4,56 @@
 <meta charset="UTF-8"/>
 <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
 <title>Yaroslava Shylyk</title>
-<link rel="preconnect" href="https://fonts.googleapis.com"/>
-<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin/>
-<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=DM+Mono:wght@300;400&display=swap"/>
+
+<!-- Pacaembu — Adobe Fonts (ліцензія не дозволяє self-host); DM Mono — public/fonts -->
+<link rel="preconnect" href="https://use.typekit.net" crossorigin/>
 <link rel="stylesheet" href="https://use.typekit.net/phb7xgn.css">
-<link rel="stylesheet" href="STYLES.css">
-<script src="https://cdn.jsdelivr.net/npm/embla-carousel@8.5.2/embla-carousel.umd.js"></script>
+<link rel="preload" href="public/fonts/dm-mono-latin-400-normal.woff2" as="font" type="font/woff2" crossorigin>
+
+<link rel="stylesheet" href="src/styles/tokens.css">
+<link rel="stylesheet" href="src/styles/base.css">
+<link rel="stylesheet" href="src/sections/loader/loader.css">
+<link rel="stylesheet" href="src/sections/cursor/cursor.css">
+<link rel="stylesheet" href="src/sections/nav/nav.css">
+<link rel="stylesheet" href="src/sections/home/home.css">
+<link rel="stylesheet" href="src/sections/work/work.css">
+<link rel="stylesheet" href="src/sections/more-work/more-work.css">
+<link rel="stylesheet" href="src/sections/about/about.css">
+<link rel="stylesheet" href="src/sections/contact/contact.css">
+<link rel="stylesheet" href="src/sections/zoom/zoom.css">
+<link rel="stylesheet" href="src/sections/impressum/impressum.css">
+<link rel="stylesheet" href="src/sections/footer/footer.css">
+
+<script type="importmap">
+{
+  "imports": {
+    "three": "./vendor/three@0.162.0/build/three.module.min.js",
+    "three/addons/": "./vendor/three@0.162.0/examples/jsm/",
+    "embla-carousel": "./vendor/embla-carousel@8.5.2/embla-carousel.esm.js"
+  }
+}
+</script>
+<!-- Фонове демо вантажиться динамічно — просимо браузер почати раніше -->
+<link rel="modulepreload" href="vendor/three@0.162.0/build/three.module.min.js">
+<link rel="modulepreload" href="src/demos/particle-sphere/particle-sphere.js">
+<script type="module" src="src/main.js"></script>
 </head>
 <body>
 
-<div id="loader">
+<div id="loader" data-section="loader">
   <div class="loader-logo">HI, I'M <em>YARA</em></div>
   <div class="loader-track"><div class="loader-bar" id="lbar"></div></div>
   <div class="loader-pct" id="lpct">0%</div>
 </div>
 
-<div id="cur"></div><div id="cur-ring"></div>
-<div class="grain"></div><div class="vignette"></div>
+<div id="cur" data-section="cursor"></div><div id="cur-ring"></div>
+<!-- Hero poster: видно, поки WebGL ще не намалював перший кадр, і як фолбек без WebGL -->
+<img class="bg-poster" src="public/media/hero-poster.webp" alt="" width="1600" height="1000" decoding="async">
 <canvas id="bg-canvas"></canvas>
+<div class="grain"></div><div class="vignette"></div>
 <div id="scroll-cue"><div class="cue-text">scroll</div><div class="cue-arrow"></div></div>
 
-<nav id="main-nav">
+<nav id="main-nav" data-section="nav">
   <a href="#s-about" class="logo">HI, I'M <em>YARA</em></a>
   <ul class="nav-links">
     <li><a href="#s-home">Home</a></li>
@@ -34,13 +63,12 @@
   </ul>
 </nav>
 
-<div id="s-home-wrapper">
+<div id="s-home-wrapper" data-section="home">
 <section id="s-home">
   <div class="hero-left hero-reveal" style="transition-delay:.05s">
     <h1 class="hero-name">
       <span class="line">Creative</span>
       <span class="line hero-reveal" style="transition-delay:.2s;font-style:italic;color:var(--c2);">Tech ❤︎⁠</span>
-
     </h1>
     <p class="hero-sub">I am specializing in Unreal Engine, generative graphics, 3D animation, and camera-tracked setups.</p>
     <div class="cta-row">
@@ -51,114 +79,170 @@
 </section>
 </div>
 
-<div id="s-work">
+<div id="s-work" data-section="work">
 <div class="spiral-section" id="spiral">
   <div class="sticky"><div class="stage"><div class="spiral" id="spiralTrack">
 
-    <div class="card-photo" id="cp-0"><video autoplay muted loop playsinline data-src="https://res.cloudinary.com/ddkjvt1t8/video/upload/v1778094647/Teddy_Sort_Cut_jrkqu6_gzambq.mp4"></video></div>
-    <div class="card-photo" id="cp-1"><video autoplay muted loop playsinline data-src="https://res.cloudinary.com/ddkjvt1t8/video/upload/v1778094648/Rohschnitt_01_hvdmcb_z0lnql.mp4"></video></div>
-    <div class="card-photo" id="cp-2"><video autoplay muted loop playsinline data-src="https://res.cloudinary.com/ddkjvt1t8/video/upload/v1778094638/Doyou_kd0xsh_fhyrd3.mp4"></video></div>
-    <div class="card-photo" id="cp-3"><video autoplay muted loop playsinline data-src="https://res.cloudinary.com/ddkjvt1t8/video/upload/v1778094645/Spinnen_Final_V1_3_warebk_brd6ws.mp4"></video></div>
-    <div class="card-photo" id="cp-4"><video autoplay muted loop playsinline data-src="https://res.cloudinary.com/ddkjvt1t8/video/upload/v1778094646/Ego-Interactive_exhibitions_03_uwlahp_lmr1m2.mp4"></video></div>
-    <div class="card-photo" id="cp-5"><video autoplay muted loop playsinline data-src="https://res.cloudinary.com/ddkjvt1t8/video/upload/v1778094636/Dream_Of_War_Short_qcslvu_xsr3dl.mp4"></video></div>
+    <div class="card-photo" id="cp-0"><video autoplay muted loop playsinline data-load="eager" poster="public/media/nightfall/reel-poster.webp" data-src="public/media/nightfall/reel.mp4" data-src-lite="public/media/nightfall/reel-720.mp4"></video></div>
+    <div class="card-photo" id="cp-1"><video autoplay muted loop playsinline poster="public/media/rohschnitt/reel-poster.webp" data-src="public/media/rohschnitt/reel.mp4" data-src-lite="public/media/rohschnitt/reel-720.mp4"></video></div>
+    <div class="card-photo" id="cp-2"><video autoplay muted loop playsinline poster="public/media/do-you/reel-poster.webp" data-src="public/media/do-you/reel.mp4" data-src-lite="public/media/do-you/reel-720.mp4"></video></div>
+    <div class="card-photo" id="cp-3"><video autoplay muted loop playsinline poster="public/media/spinnen/reel-poster.webp" data-src="public/media/spinnen/reel.mp4" data-src-lite="public/media/spinnen/reel-720.mp4"></video></div>
+    <div class="card-photo" id="cp-4"><video autoplay muted loop playsinline poster="public/media/ego/reel-poster.webp" data-src="public/media/ego/reel.mp4" data-src-lite="public/media/ego/reel-720.mp4"></video></div>
+    <div class="card-photo" id="cp-5"><video autoplay muted loop playsinline poster="public/media/dream-of-war/reel-poster.webp" data-src="public/media/dream-of-war/reel.mp4" data-src-lite="public/media/dream-of-war/reel-720.mp4"></video></div>
 
-    <a class="card" href="#" data-idx="0">
+    <a class="card" href="#" data-project="nightfall" data-role="Virtual Production Operator">
       <div class="meta">
-       <div class="meta-tags"><span class="meta-tag">Virtual Production</span><span class="meta-tag">3D Environments</span><span class="meta-tag">3D Animation</span></div>
+        <div class="meta-tags"><span class="meta-tag">Virtual Production</span><span class="meta-tag">3D Environments</span><span class="meta-tag">3D Animation</span></div>
         <div class="subtitle">Short Movie · 2026</div>
         <div class="meta-bottom-row">
-            <h3>Nightfall</h3>
-            <span class="cta-link">→</span></div>
+          <h3>Nightfall</h3>
+          <span class="cta-link">→</span></div>
         <div class="desc">Directed by Natascha Vavrina<span class="desc-extra"> · Short Movie · 2026</span></div>
       </div>
     </a>
 
-    <a class="card" href="#" data-idx="1">
+    <a class="card" href="#" data-project="rohschnitt" data-role="Virtual Production Operator">
       <div class="meta">
         <div class="meta-tags"><span class="meta-tag">Virtual Production</span><span class="meta-tag">VFX</span><span class="meta-tag">3D Environments</span></div>
         <div class="subtitle">Short Movie · 2025</div>
         <div class="meta-bottom-row">
-            <h3>Rohschnitt</h3>
-            <span class="cta-link">→</span></div>
+          <h3>Rohschnitt</h3>
+          <span class="cta-link">→</span></div>
         <div class="desc">Directed by Leon Wolf and Konstantin Züllich<span class="desc-extra"> · Short Movie · 2025</span></div>
       </div>
     </a>
 
-    <a class="card" href="#" data-idx="2">
+    <a class="card" href="#" data-project="do-you" data-role="Visual Designer">
       <div class="meta">
-         <div class="meta-tags"><span class="meta-tag">Stage Visuals</span><span class="meta-tag">Lighting Integration</span><span class="meta-tag">Art Direction</span></div>
+        <div class="meta-tags"><span class="meta-tag">Stage Visuals</span><span class="meta-tag">Lighting Integration</span><span class="meta-tag">Art Direction</span></div>
         <div class="subtitle">Music Video · 2024</div>
         <div class="meta-bottom-row">
-            <h3>Do you'</h3>
-            <span class="cta-link">→</span></div>
-            <div class="desc">Directed by Olivia Menezes<span class="desc-extra"> · Music Video · 2024</span></div>
+          <h3>Do you'</h3>
+          <span class="cta-link">→</span></div>
+        <div class="desc">Directed by Olivia Menezes<span class="desc-extra"> · Music Video · 2024</span></div>
       </div>
     </a>
 
-    <a class="card" href="#" data-idx="3">
+    <a class="card" href="#" data-project="spinnen" data-role="Visual Designer, Technical Operator">
       <div class="meta">
         <div class="meta-tags"><span class="meta-tag">Audio-Reactive Visuals</span><span class="meta-tag">Signal Routing</span><span class="meta-tag">Art Direction</span></div>
         <div class="subtitle">Performance · 2025</div>
         <div class="meta-bottom-row">
-            <h3>Spinnen</h3>
-            <span class="cta-link">→</span></div>
+          <h3>Spinnen</h3>
+          <span class="cta-link">→</span></div>
         <div class="desc">Composed by Luis Escobar<span class="desc-extra"> · Performance · 2025</span></div>
       </div>
     </a>
 
-    <a class="card" href="#" data-idx="4">
+    <a class="card" href="#" data-project="ego" data-role="Visual Designer, Technical Operator Assistant">
       <div class="meta">
         <div class="meta-tags"><span class="meta-tag">Live Video Processing</span><span class="meta-tag">Signal Routing</span><span class="meta-tag">Camera Tracking</span></div>
         <div class="subtitle">Interactive Exhibition · 2025</div>
         <div class="meta-bottom-row">
-            <h3>Ego</h3>
-            <span class="cta-link">→</span></div>
+          <h3>Ego</h3>
+          <span class="cta-link">→</span></div>
         <div class="desc">Exhibited at Immersive Art Space<span class="desc-extra"> · Interactive Exhibition · 2025</span></div>
       </div>
     </a>
 
-    <a class="card" href="#" data-idx="5">
+    <a class="card" href="#" data-project="dream-of-war" data-role="Environment Artist, Developer">
       <div class="meta">
         <div class="meta-tags"><span class="meta-tag">3D Environments</span><span class="meta-tag">3D Animation</span><span class="meta-tag">Game Development</span></div>
         <div class="subtitle">VR Game · 2022</div>
         <div class="meta-bottom-row">
-            <h3>Dream of war</h3>
-            <span class="cta-link">→</span></div>
+          <h3>Dream of war</h3>
+          <span class="cta-link">→</span></div>
         <div class="desc">Exhibited at Anifilm and ARTSEMESTR<span class="desc-extra"> · VR Game · 2022</span></div>
       </div>
     </a>
-    
 
   </div></div></div>
 </div>
-<div class="more-carousel-wrap">
-    <div class="embla">
-      <div class="embla__viewport">
-        <div class="more-carousel embla__container"></div>
+
+<div class="more-carousel-wrap" data-section="more-work">
+  <div class="embla">
+    <div class="embla__viewport">
+      <div class="more-carousel embla__container">
+
+        <div class="embla__slide" data-project="forever-trashed" data-role="3D Artist">
+          <div class="mc-card">
+            <div class="mc-img"><img src="public/media/forever-trashed/still-4.webp" alt="Forever Trashed" width="1618" height="1080" loading="lazy" decoding="async"/></div>
+            <div class="mc-meta">
+              <div class="meta-tags"><span class="meta-tag">3D Environments</span><span class="meta-tag">3D Animation</span><span class="meta-tag">3D Modeling</span><span class="meta-tag">Unity</span></div>
+              <div class="mc-bottom-row"><h3>Forever Trashed</h3><span class="cta-link">→</span></div>
+              <div class="subtitle">Game · Prague, 2023</div>
+            </div>
+          </div>
+        </div>
+
+        <div class="embla__slide" data-project="cyber-passage" data-role="Visual Designer &amp; Tracking Setup">
+          <div class="mc-card">
+            <div class="mc-img"><video autoplay muted loop playsinline preload="metadata" poster="public/media/cyber-passage/reel-poster.webp" data-src="public/media/cyber-passage/reel.mp4" data-src-lite="public/media/cyber-passage/reel-720.mp4"></video></div>
+            <div class="mc-meta">
+              <div class="meta-tags"><span class="meta-tag">Real-time Environments</span><span class="meta-tag">Camera Tracking</span><span class="meta-tag">Projection Mapping</span><span class="meta-tag">Unreal Engine</span></div>
+              <div class="mc-bottom-row"><h3>Cyber Passage</h3><span class="cta-link">→</span></div>
+              <div class="subtitle">Installation · Zurich, 2025</div>
+            </div>
+          </div>
+        </div>
+
+        <div class="embla__slide" data-project="chornozem" data-role="Visual Communication &amp; Production">
+          <div class="mc-card">
+            <div class="mc-img"><video autoplay muted loop playsinline preload="metadata" poster="public/media/chornozem/reel-poster.webp" data-src="public/media/chornozem/reel.mp4" data-src-lite="public/media/chornozem/reel-720.mp4"></video></div>
+            <div class="mc-meta">
+              <div class="meta-tags"><span class="meta-tag">Research Visualization</span><span class="meta-tag">Visual Communication &amp; Production</span></div>
+              <div class="mc-bottom-row"><h3>Chornozem</h3><span class="cta-link">→</span></div>
+              <div class="subtitle">Startup Project · Zurich/Kyiv, 2025</div>
+            </div>
+          </div>
+        </div>
+
+        <div class="embla__slide" data-project="kaleidoscope" data-role="Visual Designer">
+          <div class="mc-card">
+            <div class="mc-img"><img src="public/media/kaleidoscope/still-1.webp" alt="Kaleidoscope" width="1920" height="1279" loading="lazy" decoding="async"/></div>
+            <div class="mc-meta">
+              <div class="meta-tags"><span class="meta-tag">Animation Pipeline</span><span class="meta-tag">Motion Capture</span><span class="meta-tag">Unreal Engine</span></div>
+              <div class="mc-bottom-row"><h3>Kaleidoscope</h3><span class="cta-link">→</span></div>
+              <div class="subtitle">Installation · Prague, 2024</div>
+            </div>
+          </div>
+        </div>
+
+        <div class="embla__slide" data-project="plug-in" data-role="Visual Designer">
+          <div class="mc-card">
+            <div class="mc-img"><img src="public/media/plug-in/still-3.webp" alt="PLUG-IN" width="1920" height="1057" loading="lazy" decoding="async"/></div>
+            <div class="mc-meta">
+              <div class="meta-tags"><span class="meta-tag">Audio-Reactive Visuals</span><span class="meta-tag">Signal Routing</span><span class="meta-tag">TouchDesigner</span></div>
+              <div class="mc-bottom-row"><h3>PLUG-IN</h3><span class="cta-link">→</span></div>
+              <div class="subtitle">Installation · Berlin, 2024</div>
+            </div>
+          </div>
+        </div>
+
       </div>
-      <div class="embla__controls">
-        <button class="mc-arrow mc-prev embla__btn embla__btn--prev">←</button>
-        <div class="embla__dots"></div>
-        <button class="mc-arrow mc-next embla__btn embla__btn--next">→</button>
-      </div>
+    </div>
+    <div class="embla__controls">
+      <button class="mc-arrow mc-prev embla__btn embla__btn--prev">←</button>
+      <div class="embla__dots"></div>
+      <button class="mc-arrow mc-next embla__btn embla__btn--next">→</button>
     </div>
   </div>
 </div>
+</div>
 
-<section class="scroll-page" id="s-about">
+<section class="scroll-page" id="s-about" data-section="about">
   <div class="about-grid">
     <div>
       <div class="about-big">About &amp;<br><em>Skills</em></div>
     </div>
     <div class="about-body">
-      <p>Hey! <strong>I'm Yara</strong>. I am a visual technologist <strong>based in Switzerland</strong>.</p> <p>I have <strong>experience</strong> building and operating 3D environments for <strong>film & virtual production</strong>, designing audio-reactive visual systems for <strong>live stages</strong>, and <strong>interactive installations</strong>.</p>
+      <p>Hey! <strong>I'm Yara</strong>. I am a visual technologist <strong>based in Switzerland</strong>.</p> <p>I have <strong>experience</strong> building and operating 3D environments for <strong>film &amp; virtual production</strong>, designing audio-reactive visual systems for <strong>live stages</strong>, and <strong>interactive installations</strong>.</p>
     </div>
     <div class="tags"><span class="tag">Unreal Engine</span><span class="tag">TouchDesigner</span><span class="tag">Blender</span><span class="tag">Adobe Suite</span><span class="tag">3D Environments</span><span class="tag">3D Animation</span><span class="tag">Camera Tracking</span><span class="tag">Motion Capture</span><span class="tag">Signal Routing</span><span class="tag">Technical Setup</span></div>
   </div>
 </section>
 
-
-<section class="scroll-page" id="s-contact">
+<section class="scroll-page" id="s-contact" data-section="contact">
   <div class="contact-layout">
     <div class="contact-text">
       <div class="contact-big">Let's build<br><span class="ca">something!</span></div>
@@ -167,29 +251,174 @@
       </div>
     </div>
     <div class="contact-photo">
-      <img src="https://res.cloudinary.com/ddkjvt1t8/image/upload/v1778131968/Yaroslava_Shylyk_qnoecu.jpg" alt="Yara" />
+      <img src="public/media/portrait/yara.webp" alt="Yara" width="1920" height="1371" loading="lazy" decoding="async"/>
     </div>
   </div>
 </section>
 
-
-<div id="zoom-overlay" class="zoom-overlay">
+<div id="zoom-overlay" class="zoom-overlay" data-section="zoom">
   <div class="zoom-inner">
     <button class="zoom-close" id="zoom-close">✕</button>
-  <div class="zoom-left">
-    <div class="zoom-grid" id="zoom-grid"></div>
+    <div class="zoom-left">
+      <div class="zoom-grid" id="zoom-grid"></div>
+    </div>
+    <div class="zoom-right">
+      <div class="zoom-tags" id="zoom-tags"></div>
+      <h2 class="zoom-title" id="zoom-title"></h2>
+      <div class="zoom-subtitle" id="zoom-subtitle"></div>
+      <p class="zoom-desc" id="zoom-desc"></p>
+      <div class="zoom-meta" id="zoom-meta"></div>
+    </div>
   </div>
-  <div class="zoom-right">
-    <div class="zoom-tags" id="zoom-tags"></div>
-    <h2 class="zoom-title" id="zoom-title"></h2>
-    <div class="zoom-subtitle" id="zoom-subtitle"></div>
-    <p class="zoom-desc" id="zoom-desc"></p>
-    <div class="zoom-meta" id="zoom-meta"></div>
-  </div>
-  </div>
+
+  <!-- Деталі проєктів для оверлея (zoom.js). Перший елемент media — великий. -->
+  <template data-project="nightfall">
+    <h2 data-field="title">Nightfall</h2>
+    <p data-field="subtitle">Short Movie · Zurich 2026</p>
+    <ul data-field="tags"><li>Virtual Production</li><li>3D Environments</li><li>3D Animation</li><li>Unreal Engine</li></ul>
+    <p data-field="desc">Operated a real-time Unreal Engine environment during a virtual production shoot. Maintained synchronization between the physical camera and the virtual scene, adjusting lighting, animation, and scene parameters live. Set up and triggered animation cues in sync with the actor’s movement to align virtual events with on-set performance and timing.</p>
+    <dl data-field="meta"><dt>Role</dt><dd>Virtual Production Operator</dd><dt>Tools</dt><dd>Unreal Engine, Blender</dd><dt>Year</dt><dd>2026</dd></dl>
+    <div data-field="media">
+      <video preload="metadata" poster="public/media/nightfall/reel-poster.webp" data-src="public/media/nightfall/reel.mp4" data-src-lite="public/media/nightfall/reel-720.mp4"></video>
+      <img src="public/media/nightfall/still-3.webp" width="1920" height="1080" loading="lazy" decoding="async" alt="">
+      <img src="public/media/nightfall/still-1.webp" width="1920" height="1280" loading="lazy" decoding="async" alt="">
+      <img src="public/media/nightfall/still-2.webp" width="1920" height="1314" loading="lazy" decoding="async" alt="">
+    </div>
+  </template>
+
+  <template data-project="rohschnitt">
+    <h2 data-field="title">Rohschnitt</h2>
+    <p data-field="subtitle">Short Movie · Zurich 2025</p>
+    <ul data-field="tags"><li>Virtual Production</li><li>VFX</li><li>3D Environments</li><li>Unreal Engine</li><li>Niagara</li></ul>
+    <p data-field="desc">Built and operated a real-time environment in Unreal Engine for a virtual production shoot. Developed Niagara-based simulations for explosions and sand, and controlled them live on set. Set up animation triggers to align VFX events with the actor’s movement, adjusting timing and behavior during takes.</p>
+    <dl data-field="meta"><dt>Role</dt><dd>Virtual Production Operator</dd><dt>Tools</dt><dd>Unreal Engine, Blender</dd><dt>Year</dt><dd>2025</dd></dl>
+    <div data-field="media">
+      <video preload="metadata" poster="public/media/rohschnitt/reel-poster.webp" data-src="public/media/rohschnitt/reel.mp4" data-src-lite="public/media/rohschnitt/reel-720.mp4"></video>
+      <img src="public/media/rohschnitt/still-4.webp" width="1920" height="1072" loading="lazy" decoding="async" alt="">
+      <img src="public/media/rohschnitt/still-2.webp" width="1920" height="1280" loading="lazy" decoding="async" alt="">
+      <img src="public/media/rohschnitt/still-3.webp" width="1920" height="1080" loading="lazy" decoding="async" alt="">
+    </div>
+  </template>
+
+  <template data-project="do-you">
+    <h2 data-field="title">Do You</h2>
+    <p data-field="subtitle">Music Video · Zurich, 2024</p>
+    <ul data-field="tags"><li>Stage Visuals</li><li>Lighting Integration</li><li>TouchDesigner</li></ul>
+    <p data-field="desc">Developed and ran a real-time visual system for a music video shoot, combining stage lighting with generative graphics. The visuals were adjusted live on set to match camera movement and performance timing.</p>
+    <dl data-field="meta"><dt>Role</dt><dd>Visual Designer</dd><dt>Tools</dt><dd>TouchDesigner, After Effects, MadMapper</dd><dt>Year</dt><dd>2024</dd></dl>
+    <div data-field="media">
+      <video preload="metadata" poster="public/media/do-you/reel-poster.webp" data-src="public/media/do-you/reel.mp4" data-src-lite="public/media/do-you/reel-720.mp4"></video>
+    </div>
+  </template>
+
+  <template data-project="spinnen">
+    <h2 data-field="title">Spinnen</h2>
+    <p data-field="subtitle">Performance · Zurich 2025</p>
+    <ul data-field="tags"><li>Audio-Reactive Visuals</li><li>Signal Routing</li><li>Art Direction</li></ul>
+    <p data-field="desc">Developed a real-time visual system driven by live microphone inputs for the performance “Spinnen” by Luis Escobar. Built a TouchDesigner pipeline that translated audio signals into visual behavior, controlling intensity, movement, and transitions during the performance. Operated the system live, adjusting parameters in response to sound dynamics and performer timing.</p>
+    <dl data-field="meta"><dt>Role</dt><dd>Visual Designer, Technical Operator</dd><dt>Tools</dt><dd>TouchDesigner</dd><dt>Year</dt><dd>2025</dd></dl>
+    <div data-field="media">
+      <video preload="metadata" poster="public/media/spinnen/reel-poster.webp" data-src="public/media/spinnen/reel.mp4" data-src-lite="public/media/spinnen/reel-720.mp4"></video>
+    </div>
+  </template>
+
+  <template data-project="ego">
+    <h2 data-field="title">Ego</h2>
+    <p data-field="subtitle">Interactive Exhibition · Zurich 2025</p>
+    <ul data-field="tags"><li>Live Post-Processing</li><li>Signal Routing</li><li>Camera Tracking</li><li>TouchDesigner</li></ul>
+    <p data-field="desc">Built an interactive video pipeline where live camera input was processed in TouchDesigner and projected at room scale. Participant movement was captured and used to drive visual transformations and lighting behavior, creating a feedback loop between the body, image, and space. Presented at Immersive Art Space (Zurich, 2025)</p>
+    <dl data-field="meta"><dt>Role</dt><dd>Visual Designer, Technical Operator Assistant</dd><dt>Tools</dt><dd>TouchDesigner, MAX, MadMapper</dd><dt>Year</dt><dd>2025</dd></dl>
+    <div data-field="media">
+      <video preload="metadata" poster="public/media/ego/reel-poster.webp" data-src="public/media/ego/reel.mp4" data-src-lite="public/media/ego/reel-720.mp4"></video>
+      <img src="public/media/ego/still-10.webp" width="1920" height="1280" loading="lazy" decoding="async" alt="">
+      <img src="public/media/ego/still-02.webp" width="1080" height="720" loading="lazy" decoding="async" alt="">
+      <img src="public/media/ego/still-03.webp" width="960" height="720" loading="lazy" decoding="async" alt="">
+    </div>
+  </template>
+
+  <template data-project="dream-of-war">
+    <h2 data-field="title">Dream of war</h2>
+    <p data-field="subtitle">VR Game · Prague 2022</p>
+    <ul data-field="tags"><li>3D Environments</li><li>Game Development</li><li>3D Animation</li><li>Unreal Engine</li></ul>
+    <p data-field="desc">Developed a VR experience in Unreal Engine, combining environment design, interaction logic, and real-time animation. Built spatial scenes and user pathways, focusing on navigation, pacing, and immersion. Presented at Anifilm (Liberec, 2023), FAMU (Prague, 2023), and UMPRUM ARTSEMESTR (Prague, 2022).</p>
+    <dl data-field="meta"><dt>Role</dt><dd>Environment Artist, Developer</dd><dt>Tools</dt><dd>Unreal Engine, Blender</dd><dt>Year</dt><dd>2022</dd></dl>
+    <div data-field="media">
+      <video preload="metadata" poster="public/media/dream-of-war/reel-poster.webp" data-src="public/media/dream-of-war/reel.mp4" data-src-lite="public/media/dream-of-war/reel-720.mp4"></video>
+      <img src="public/media/dream-of-war/still-01.webp" width="1527" height="720" loading="lazy" decoding="async" alt="">
+      <img src="public/media/dream-of-war/still-04.webp" width="1316" height="720" loading="lazy" decoding="async" alt="">
+      <img src="public/media/dream-of-war/still-02.webp" width="1481" height="720" loading="lazy" decoding="async" alt="">
+    </div>
+  </template>
+
+  <template data-project="forever-trashed">
+    <h2 data-field="title">Forever Trashed</h2>
+    <p data-field="subtitle">Game · Prague, 2023</p>
+    <ul data-field="tags"><li>3D Environments</li><li>3D Animation</li><li>3D Modeling</li><li>Unity</li></ul>
+    <p data-field="desc">Designed and built a game environment, including 3D assets, level structure, and character/object animations. Focused on spatial composition, gameplay flow, and visual coherence across the scene. Presented at FIK (Ústí nad Labem, 2023) and Lektvar (Olomouc, 2023).</p>
+    <dl data-field="meta"><dt>Role</dt><dd>3D Artist</dd><dt>Tools</dt><dd>Blender, Unity</dd><dt>Year</dt><dd>2023</dd></dl>
+    <div data-field="media">
+      <img src="public/media/forever-trashed/still-4.webp" width="1618" height="1080" loading="lazy" decoding="async" alt="">
+      <img src="public/media/forever-trashed/still-5.webp" width="1717" height="1080" loading="lazy" decoding="async" alt="">
+      <video preload="metadata" poster="public/media/forever-trashed/reel-poster.webp" data-src="public/media/forever-trashed/reel.mp4" data-src-lite="public/media/forever-trashed/reel-720.mp4"></video>
+      <img src="public/media/forever-trashed/still-7.webp" width="1348" height="1080" loading="lazy" decoding="async" alt="">
+    </div>
+  </template>
+
+  <template data-project="cyber-passage">
+    <h2 data-field="title">Cyber Passage</h2>
+    <p data-field="subtitle">Installation · Zurich, 2025</p>
+    <ul data-field="tags"><li>Real-time Environments</li><li>Camera Tracking</li><li>Projection Mapping</li><li>Unreal Engine</li></ul>
+    <p data-field="desc">Built and operated a real-time Unreal Engine setup combining virtual camera tracking and projection mapping. Aligned virtual perspective with the viewer’s position, adjusting scene and projection parameters to maintain spatial coherence as the viewpoint shifted. Presented at Immersive Art Space (Zurich, 2025).</p>
+    <dl data-field="meta"><dt>Role</dt><dd>Visual Designer &amp; Tracking Setup</dd><dt>Tools</dt><dd>Unreal Engine, Blender, Max/MSP, MadMapper</dd><dt>Year</dt><dd>2025</dd></dl>
+    <div data-field="media">
+      <video preload="metadata" poster="public/media/cyber-passage/reel-poster.webp" data-src="public/media/cyber-passage/reel.mp4" data-src-lite="public/media/cyber-passage/reel-720.mp4"></video>
+      <img src="public/media/cyber-passage/still-12.webp" width="1383" height="720" loading="lazy" decoding="async" alt="">
+      <img src="public/media/cyber-passage/still-10.webp" width="1080" height="720" loading="lazy" decoding="async" alt="">
+      <img src="public/media/cyber-passage/still-02.webp" width="1606" height="720" loading="lazy" decoding="async" alt="">
+    </div>
+  </template>
+
+  <template data-project="chornozem">
+    <h2 data-field="title">Chornozem</h2>
+    <p data-field="subtitle">Startup Project · Zurich/Kyiv, 2025</p>
+    <ul data-field="tags"><li>Research Visualization</li><li>Visual Communication &amp; Production</li></ul>
+    <p data-field="desc">Visual communication for a research startup developing soil contamination detection tools. Shaped how the project is presented across pitches, exhibitions, and public platforms, producing video, graphics, and spatial materials that translate scientific data into clear narratives. The project received multiple international recognitions, including 1st Place at Falling Walls Lab Switzerland and Overall Winner at BioDesign Challenge 2025.</p>
+    <dl data-field="meta"><dt>Role</dt><dd>Visual Communication &amp; Production</dd><dt>Tools</dt><dd>Adobe Suite, Blender</dd><dt>Year</dt><dd>2025</dd></dl>
+    <div data-field="media">
+      <video preload="metadata" poster="public/media/chornozem/reel-poster.webp" data-src="public/media/chornozem/reel.mp4" data-src-lite="public/media/chornozem/reel-720.mp4"></video>
+      <img src="public/media/chornozem/falling-walls.webp" width="1024" height="683" loading="lazy" decoding="async" alt="">
+      <img src="public/media/chornozem/vdid.webp" width="1920" height="800" loading="lazy" decoding="async" alt="">
+      <img src="public/media/chornozem/app.webp" width="1620" height="1080" loading="lazy" decoding="async" alt="">
+    </div>
+  </template>
+
+  <template data-project="kaleidoscope">
+    <h2 data-field="title">Kaleidoscope</h2>
+    <p data-field="subtitle">Installation · Prague, 2024</p>
+    <ul data-field="tags"><li>Animation Pipeline</li><li>Motion Capture</li><li>Unreal Engine</li></ul>
+    <p data-field="desc">Captured motion data from a dance performance and processed it through a pipeline in MotionBuilder and Unreal Engine 5, refining timing and integrating the animation into a real-time 3D scene.</p>
+    <dl data-field="meta"><dt>Role</dt><dd>Visual Designer</dd><dt>Tools</dt><dd>Unreal Engine, Motion Builder</dd><dt>Year</dt><dd>2024</dd></dl>
+    <div data-field="media">
+      <img src="public/media/kaleidoscope/still-1.webp" width="1920" height="1279" loading="lazy" decoding="async" alt="">
+      <video preload="metadata" poster="public/media/kaleidoscope/reel-poster.webp" data-src="public/media/kaleidoscope/reel.mp4" data-src-lite="public/media/kaleidoscope/reel-720.mp4"></video>
+      <img src="public/media/kaleidoscope/still-4.webp" width="1528" height="833" loading="lazy" decoding="async" alt="">
+      <img src="public/media/kaleidoscope/still-2.webp" width="1158" height="729" loading="lazy" decoding="async" alt="">
+    </div>
+  </template>
+
+  <template data-project="plug-in">
+    <h2 data-field="title">PLUG-IN</h2>
+    <p data-field="subtitle">Installation · Berlin, 2024</p>
+    <ul data-field="tags"><li>Audio-Reactive Visuals</li><li>Signal Routing</li><li>TouchDesigner</li></ul>
+    <p data-field="desc">Developed an interactive installation combining spatial audio and generative visuals. Sensors placed in the space captured participant movement, driving changes in audio, which in turn influenced the visual system. Built and tuned the signal flow between input, sound, and graphics to maintain a coherent real-time response during interaction. Exhibited at BHROX, Berlin, in 2024.</p>
+    <dl data-field="meta"><dt>Role</dt><dd>Visual Designer</dd><dt>Tools</dt><dd>TouchDesigner</dd><dt>Year</dt><dd>2024</dd></dl>
+    <div data-field="media">
+      <img src="public/media/plug-in/still-3.webp" width="1920" height="1057" loading="lazy" decoding="async" alt="">
+    </div>
+  </template>
 </div>
 
-<section class="impressum" id="s-impressum">
+<section class="impressum" id="s-impressum" data-section="impressum">
   <div class="impressum-grid">
     <div class="impressum-left">
       <h2 class="impressum-title">Impressum</h2>
@@ -210,14 +439,10 @@
   </div>
 </section>
 
-<footer class="site-footer">
+<footer class="site-footer" data-section="footer">
   <span>© 2026 Yaroslava Shylyk</span>
   <span>Visual Technologist · Zurich</span>
 </footer>
 
-<script type="importmap">
-{"imports":{"three":"https://cdn.jsdelivr.net/npm/three@0.162.0/build/three.module.js","three/addons/":"https://cdn.jsdelivr.net/npm/three@0.162.0/examples/jsm/"}}
-</script>
-<script type="module" src="JS.js"></script>
 </body>
 </html>
