@@ -1,0 +1,154 @@
+/* ── MORE WORK CAROUSEL ── */
+.more-carousel-wrap {
+  position: relative;
+  padding: 0;
+  overflow: visible;
+  margin-top: 3rem;
+  margin-bottom: 4.5rem;
+}
+.embla__slide {
+  flex: 0 0 80%;
+  min-width: 0;
+  padding: 0 0.5rem;
+}
+
+@media (min-width: 640px) {
+  .embla__slide { flex: 0 0 48%; }
+}
+
+@media (min-width: 992px) {
+  .embla__slide { flex: 0 0 32%; }
+}
+
+.embla__viewport {
+  overflow: hidden;
+  width: 100%;
+  padding: 8px 0;
+}
+
+.more-carousel {
+  display: flex;
+  width: 100%;
+  box-sizing: border-box;
+  cursor: grab;
+  /* Обов'язково для Embla: вертикальний свайп віддаємо браузеру (скрол сторінки),
+     горизонтальний — каруселі. Без цього вони конкурують за кожен дотик. */
+  touch-action: pan-y pinch-zoom;
+}
+
+.more-carousel:active { cursor: grabbing; }
+
+.embla__controls {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 1rem;
+  margin-top: 1.5rem;
+}
+
+.embla__dots {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.embla__dot {
+  appearance: none;
+  border: 0;
+  width: 6px;
+  height: 6px;
+  border-radius: 50%;
+  background: rgba(255, 255, 255, 0.25);
+  cursor: none;
+  transition: transform 0.2s ease, background-color 0.2s ease;
+  padding: 0;
+}
+
+.embla__dot[aria-selected="true"] {
+  background: var(--c2);
+  transform: scale(1.6);
+}
+
+.mc-card {
+  width: 100%;
+  border-radius: var(--glass-r);
+  overflow: hidden;
+  border: 1px solid rgba(0, 229, 255, 0.15);
+  background: rgba(255, 255, 255, 0.04);
+  cursor: none;
+  position: relative;
+  transition: border-color .4s var(--ease), box-shadow .4s var(--ease), transform .4s var(--ease);
+}
+.mc-card:hover {
+  border-color: rgba(0, 229, 255, 0.5);
+  box-shadow: 0 0 8px rgba(0, 229, 255, 0.3), 0 0 24px rgba(0, 229, 255, 0.12);
+  transform: translateY(-4px);
+}
+.mc-img {
+  aspect-ratio: 4 / 3;
+  overflow: hidden;
+  position: relative;
+  width: 100%;
+}
+.mc-img img,
+.mc-img video {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  transition: transform .6s var(--ease);
+}
+.mc-img video::-webkit-media-controls { display: none !important; }
+.mc-img video::-webkit-media-controls-overlay-play-button { display: none !important; -webkit-appearance: none; }
+.mc-card:hover .mc-img img,
+.mc-card:hover .mc-img video { transform: scale(1.04); }
+
+@media (hover: none), (pointer: coarse) {
+  .mc-card:hover {
+    border-color: rgba(0, 229, 255, 0.15);
+    box-shadow: none;
+    transform: none;
+  }
+  .mc-card:hover .mc-img img,
+  .mc-card:hover .mc-img video {
+    transform: none;
+  }
+}
+
+.mc-meta {
+  position: absolute;
+  inset: 0;
+  z-index: 5;
+  display: grid;
+  grid-template-rows: auto 1fr auto;
+  margin: 0;
+  padding: 1.1rem 1.2rem 1.2rem;
+  background: linear-gradient(to top, rgba(0,0,0,.92) 0%, rgba(0,0,0,.75) 30%, rgba(0,0,0,.55) 60%, rgba(0,0,0,.4) 100%);
+}
+.mc-meta .meta-tags { display: flex; gap: .4rem; flex-wrap: wrap; margin-bottom: .3rem; }
+.mc-meta .meta-tag { font-size: clamp(.4rem, .8vw, .55rem); letter-spacing: .1em; text-transform: uppercase; padding: .22rem .55rem; border: 1px solid rgba(0,229,255,.35); color: var(--c2); border-radius: var(--tag-r); background: rgba(0,229,255,.07); }
+.mc-meta .subtitle { font-size: calc(.62rem + var(--text-grow)); letter-spacing: .08em; color: rgba(255,255,255,.5); margin-top: .3rem; }
+.mc-bottom-row { display: flex; justify-content: space-between; align-items: flex-end; }
+.mc-meta h3 { margin: 0; font-family: "pacaembu", sans-serif; font-size: clamp(.9rem, 2vw, 1.4rem); font-weight: 400; line-height: 1.05; letter-spacing: -.01em; color: #fff; }
+.mc-meta .cta-link { font-size: 1.6rem; color: var(--c2); flex-shrink: 0; }
+@media (max-width: 768px) {
+  .mc-meta h3 { font-size: clamp(1.55rem, 5.8vw, 2.05rem); }
+  .mc-img { aspect-ratio: 5 / 6; }
+  .mc-meta .meta-tag { font-size: clamp(.8rem, 1.8vw, 1.02rem); padding: .32rem .7rem; }
+  .mc-meta .subtitle { font-size: calc(.84rem + var(--text-grow)); }
+}
+
+.mc-arrow {
+  background: none;
+  border: 1px solid rgba(0, 229, 255, 0.35);
+  color: var(--c2); font-size: 1rem;
+  width: 36px; height: 36px; border-radius: 50%;
+  cursor: none; display: flex; align-items: center; justify-content: center;
+  transition: border-color .3s, box-shadow .3s;
+  flex-shrink: 0;
+}
+.mc-arrow:hover {
+  border-color: rgba(0, 229, 255, 0.9);
+  box-shadow: 0 0 8px rgba(0, 229, 255, 0.4);
+}

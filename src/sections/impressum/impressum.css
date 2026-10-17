@@ -1,0 +1,39 @@
+.impressum {
+  position: relative; z-index: 10;
+  padding: 5rem 2.8rem;
+  border-top: 1px solid rgba(255,255,255,.06);
+}
+.impressum-grid {
+  display: grid;
+  grid-template-columns: 1fr 2fr;
+  gap: 4rem;
+  align-items: start;
+  width: 100%;
+}
+.impressum-title,
+.impressum-heading {
+  font-family: "pacaembu", sans-serif;
+  font-size: clamp(1.4rem, 2.2vw, 1.9rem);
+  font-weight: 400;
+  margin-bottom: 1.3rem;
+  color: #fff;
+}
+.impressum-info p,
+.impressum-right p {
+  font-size: var(--text-body);
+  line-height: 1.9;
+  color: var(--cm);
+  margin-bottom: 1.1rem;
+}
+.impressum-name { color: rgba(255,255,255,.7); }
+.impressum-email a { color: var(--c2); text-decoration: none; }
+.impressum-email a:hover { text-decoration: underline; }
+.impressum-right p:last-child { margin-bottom: 0; }
+
+@media (max-width: 768px) {
+  .impressum { padding: 2.5rem 1.4rem; }
+  .impressum-grid {
+    grid-template-columns: 1fr;
+    gap: 2rem;
+  }
+}

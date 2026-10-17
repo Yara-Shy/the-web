@@ -1,0 +1,8 @@
+.site-footer {
+  position: relative; z-index: 10;
+  display: flex; justify-content: space-between; align-items: center;
+  padding: 1.5rem 2.8rem;
+  border-top: 1px solid rgba(255,255,255,.06);
+  font-size: calc(.58rem + var(--text-grow)); letter-spacing: .14em; text-transform: uppercase;
+  color: var(--cm);
+}

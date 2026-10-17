@@ -1,0 +1,5 @@
+import { SIMPLEX_3D } from './simplex.glsl.js';
+
+export const vertexShader = SIMPLEX_3D + `attribute float size;varying vec3 vColor;varying float vME;uniform float time;uniform vec2 uMouse;void main(){vColor=color;vec4 pv2=projectionMatrix*modelViewMatrix*vec4(position,1.);vec2 sp=pv2.xy/pv2.w;float md=distance(sp,uMouse);float me=1.-smoothstep(0.,.25,md);vME=me;float nA=0.8+me*5.0;vec3 ni=position*.4+time*.8;vec3 d=vec3(snoise(ni),snoise(ni+vec3(10.)),snoise(ni+vec3(20.)));vec3 fp=position+d*nA;float pulse=sin(time+length(position))*.1+1.;vec4 mv=modelViewMatrix*vec4(fp,1.);gl_PointSize=size*(400./-mv.z)*pulse*(1.+vME*.5);gl_Position=projectionMatrix*mv;}`;
+
+export const fragmentShader = `varying vec3 vColor;varying float vME;uniform float time;uniform float uGlowSpread;float rand(vec2 c){return fract(sin(dot(c,vec2(12.9898,78.233)))*43758.5453);}void main(){vec2 cxy=2.*gl_PointCoord-1.;float r=dot(cxy,cxy);if(r>1.)discard;float glow=exp(-r*3.5/uGlowSpread)+vME*.5;float tw=rand(gl_PointCoord+time)*.5+.5;vec3 fc=vColor*(1.1+sin(time*.8)*.2+vME*.5)*glow*tw*uGlowSpread;gl_FragColor=vec4(fc,smoothstep(0.,1.,glow));}`;

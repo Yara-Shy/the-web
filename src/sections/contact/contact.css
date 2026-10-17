@@ -1,0 +1,35 @@
+#s-contact { overflow-x: clip; border-top: none; padding-top: 7rem; padding-bottom: 7rem; }
+.contact-big { font-family: "pacaembu", sans-serif; font-size: clamp(2.4rem, 5vw, 4.8rem); line-height: 1.0; letter-spacing: -.02em; margin-bottom: 2.8rem; }
+.contact-big .ca { color: var(--c1); font-style: italic; display: block; }
+.contact-big .cd { color: rgba(255,255,255,.28); }
+.contact-links { display: flex; flex-direction: column; gap: .7rem; }
+.cl { font-size: clamp(.85rem, 4vw, 1.2rem); letter-spacing: .01em; color: var(--cm); text-decoration: none; display: flex; align-items: center; gap: 1rem; transition: color .3s, gap .35s var(--ease); width: fit-content; background: none; border: none; padding: 0; cursor: none; font-family: 'DM Mono', monospace; user-select: none; }
+.cl:hover { color: #fff; gap: 1.4rem; }
+.cl-arr { color: var(--c1); }
+
+.contact-layout {
+  display: grid;
+  grid-template-columns: 1fr 1.5fr;
+  gap: 4rem;
+  align-items: center;
+  width: 100%;
+}
+.contact-photo {
+  border-radius: var(--photo-r);
+  overflow: hidden;
+  aspect-ratio: 5/3;
+}
+.contact-photo img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  display: block;
+}
+@media (max-width: 768px) {
+  .contact-layout {
+    grid-template-columns: 1fr;
+  }
+  .contact-photo {
+    aspect-ratio: 1/1;
+  }
+}

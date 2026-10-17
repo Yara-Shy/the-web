@@ -1,0 +1,25 @@
+#cur {
+  position: fixed; width: 8px; height: 8px;
+  background: var(--c2); border-radius: 50%;
+  pointer-events: none; z-index: 9999;
+  transform: translate(-50%, -50%);
+  mix-blend-mode: difference;
+  transition: width .2s, height .2s;
+}
+#cur-ring {
+  position: fixed; width: 44px; height: 44px;
+  border: 1px solid rgba(0, 229, 255, .4); border-radius: 50%;
+  pointer-events: none; z-index: 9998;
+  transform: translate(-50%, -50%);
+  transition: width .3s var(--ease), height .3s var(--ease), border-color .3s;
+}
+/* курсор мишки*/
+body:has(a:hover, .btn:hover) #cur { width: 4px; height: 4px; background: var(--c1); }
+body:has(a:hover, .btn:hover) #cur-ring { width: 64px; height: 64px; border-color: var(--c1); }
+
+body:has(.card:hover, .card.is-hovered) #cur { width: 14px; height: 14px; background: var(--c2); }
+body:has(.card:hover, .card.is-hovered) #cur-ring { width: 80px; height: 80px; border-color: var(--c2); }
+
+@media (pointer: coarse) {
+  #cur, #cur-ring { display: none; }
+}

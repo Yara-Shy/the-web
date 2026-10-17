@@ -1,0 +1,17 @@
+#s-about { overflow-x: visible; border-top: none; padding-top: 7rem; }
+
+@media (max-width: 768px) {
+  #s-about { padding-top: 2rem; }
+}
+.about-grid { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 7rem; align-items: start; width: 100%; }
+.about-big { font-family: "pacaembu", sans-serif; font-size: clamp(2.4rem, 5vw, 4.8rem); line-height: 1.0; letter-spacing: -.02em; margin-bottom: 2rem; }
+.about-big em { color: var(--c2); font-style: italic; }
+.about-body p { font-size: var(--text-body); line-height: 1.9; color: var(--cm); margin-bottom: 1.1rem; }
+.about-body p strong { color: #fff; }
+.tags { display: flex; gap: .4rem; flex-wrap: wrap; margin-bottom: .3rem; }
+.tag { font-size: calc(.55rem + var(--text-grow)); letter-spacing: .1em; text-transform: uppercase; padding: .22rem .55rem; border: 1px solid var(--c2); color: var(--c2); border-radius: var(--tag-r); background: rgba(0,229,255,.07); }
+.tag:hover { background: var(--c2); color: #000; }
+
+@media (max-width: 768px) {
+  .about-grid { grid-template-columns: 1fr; gap: 2rem; }
+}

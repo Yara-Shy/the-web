@@ -1,0 +1,206 @@
+/* ── ZOOM OVERLAY ── */
+.zoom-overlay {
+  position: fixed; inset: 0; z-index: 1000;
+  background: rgba(0,0,0,0.6);
+  backdrop-filter: blur(10px);
+  -webkit-backdrop-filter: blur(10px);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 3vh 3vw;
+  opacity: 0; pointer-events: none;
+  transition: opacity .5s var(--ease);
+}
+.zoom-overlay.open { opacity: 1; pointer-events: all; }
+
+/* внутрішній контейнер */
+.zoom-inner {
+  position: relative;
+  width: calc(100vw - 6vw);
+  height: calc(100vh - 6vh);
+  background: rgba(255, 255, 255, 0.05);
+  backdrop-filter: saturate(1.9) brightness(1.15) blur(12px);
+  -webkit-backdrop-filter: saturate(1.9) brightness(1.15) blur(12px);
+  border: 1px solid rgba(255,255,255,.07);
+  border-radius: var(--photo-r);
+  display: grid;
+  grid-template-columns: 1fr 320px;
+  overflow: hidden;
+}
+
+.zoom-close {
+  position: absolute; top: 1.2rem; right: 1.2rem; z-index: 10;
+  background: none; border: 1.5px;
+  border-color: rgba(0, 229, 255, 0.9);
+  box-shadow:
+    0 0 2px rgba(74, 237, 255, 0.9),
+    inset 0 0 2px rgba(0, 229, 255, 0.404);
+  color: rgba(0, 229, 255, 0.9); font-size: calc(.95rem + var(--text-grow)); cursor: none;
+  width: calc(2.4rem + var(--text-grow) * 2); height: calc(2.4rem + var(--text-grow) * 2); border-radius: 50%;
+  display: flex; align-items: center; justify-content: center;
+  transition: border-color .3s, color .3s;
+}
+.zoom-close:hover { border-color: var(--c1); color: var(--c1); box-shadow:
+    0 0 2px#ff2d6b80,
+    inset 0 0 2px#ff2d6b80;}
+
+.zoom-left {
+  display: flex;
+  flex-direction: column;
+  padding: 1.5rem;
+  overflow: hidden;
+  min-height: 0;
+}
+
+.zoom-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr 1fr; /* ← кількість колонок для маленьких фото */
+  grid-template-rows: 3fr 0.8fr; /* ← змінюй пропорцію велике/маленькі фото, наприклад 2fr 1fr, 3fr 1fr */
+  gap: 1.3rem;
+  flex: 1;
+  min-height: 0;
+}
+.zoom-grid.single-image {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+}
+.zoom-grid img, .zoom-grid video {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  border-radius: var(--photo-r);
+  display: block;
+  opacity: 0;
+  transform: translateY(16px);
+  transition: opacity .6s var(--ease), transform .6s var(--ease);
+  min-height: 0;
+  max-height: none;
+}
+.zoom-grid.single-image img, .zoom-grid.single-image video {
+  width: 100%;
+  height: 100%;
+  max-width: 100%;
+  max-height: 100%;
+}
+.zoom-grid img:first-child, .zoom-grid video:first-child {
+  grid-column: 1 / -1; /* ← велике фото/відео розтягується на всі колонки */
+}
+.zoom-overlay.open .zoom-grid img,
+.zoom-overlay.open .zoom-grid video { opacity: 1; transform: translateY(0); }
+.zoom-grid img:nth-child(2), .zoom-grid video:nth-child(2) { transition-delay: .12s; }
+.zoom-grid img:nth-child(3), .zoom-grid video:nth-child(3) { transition-delay: .22s; }
+.zoom-grid img:nth-child(4), .zoom-grid video:nth-child(4) { transition-delay: .32s; }
+
+.zoom-right {
+  padding: 2.8rem 2rem 2rem;
+  display: flex; flex-direction: column;
+  border-left: 1px solid rgba(255,255,255,.06);
+  overflow-y: auto;
+}
+
+.zoom-tags { display: flex; gap: .4rem; flex-wrap: wrap; margin-bottom: 1rem; }
+
+.zoom-title {
+  font-family: "pacaembu", sans-serif;
+  font-size: clamp(1.6rem, 2.5vw, 2.4rem);
+  font-weight: 400; line-height: .95;
+  letter-spacing: -.02em; margin-bottom: .5rem;
+}
+
+.zoom-subtitle {
+  font-size: calc(.6rem + var(--text-grow)); letter-spacing: .1em;
+  color: var(--cm); margin-bottom: 1.5rem;
+  padding-bottom: 1.5rem;
+  border-bottom: 1px solid rgba(255,255,255,.06);
+}
+
+.zoom-desc {
+  font-size: var(--text-body); line-height: 1.85;
+  color: var(--cm); margin-bottom: 2rem;
+}
+
+.zoom-meta {
+  font-size: calc(.65rem + var(--text-grow)); line-height: 2.2;
+  color: rgba(255,255,255,.3);
+  margin-top: auto;
+  padding-top: 1.5rem;
+  white-space: pre-line;
+  border-top: 1px solid rgba(255,255,255,.06);
+}
+
+@media (max-width: 768px) {
+  .zoom-overlay {
+    padding: 0;
+    align-items: flex-start;
+    overflow-y: scroll;
+    overflow-x: hidden;
+    overscroll-behavior: contain;
+    -webkit-overflow-scrolling: touch;
+  }
+  .zoom-inner {
+    width: 100vw;
+    height: auto;
+    min-height: 100vh;
+    max-height: none;
+    border-radius: 0;
+    overflow: visible;
+    display: flex;
+    flex-direction: column;
+    padding: 4rem 1.5rem 2rem;
+  }
+  .zoom-close {
+    position: fixed;
+    top: 1rem;
+    right: 1rem;
+    font-size: calc(1.15rem + var(--text-grow));
+    width: calc(2.8rem + var(--text-grow) * 2);
+    height: calc(2.8rem + var(--text-grow) * 2);
+  }
+  .zoom-title {
+    font-size: clamp(2rem, 6.5vw, 2.6rem);
+    order: 2;
+  }
+  /* zoom-right/zoom-left/zoom-grid більше не власні layout-блоки на мобільній —
+     display:contents "розчиняє" їх, і всі діти (теги/назва/підзаголовок/
+     відео-фото/meta/опис) стають прямими flex-елементами .zoom-inner, тож
+     їх можна вільно переставити через order у потрібну послідовність:
+     теги → назва → тип/рік → головне відео/фото → роль/тулі/рік → інші
+     фото → опис. */
+  .zoom-right, .zoom-left, .zoom-grid, .zoom-grid.single-image {
+    display: contents;
+  }
+  .zoom-tags { order: 1; }
+  .zoom-subtitle { order: 3; }
+  .zoom-meta { order: 5; margin-top: 0; }
+  .zoom-desc {
+    order: 6;
+    padding-top: 1.5rem;
+    border-top: 1px solid rgba(255,255,255,.06);
+  }
+  .zoom-grid img,
+  .zoom-grid video {
+    width: 100%;
+    height: auto !important;
+    aspect-ratio: 4/3 !important;
+    object-fit: cover;
+    border-radius: var(--photo-r);
+    margin-bottom: .6rem;
+  }
+  .zoom-grid img:first-child,
+  .zoom-grid video:first-child {
+    grid-column: unset;
+    order: 4;
+    margin-top: 1.5rem;
+  }
+  .zoom-grid img:not(:first-child),
+  .zoom-grid video:not(:first-child) {
+    order: 7;
+  }
+  .zoom-grid img:nth-child(2),
+  .zoom-grid video:nth-child(2) {
+    margin-top: 1rem;
+    padding-top: 1.5rem;
+    border-top: 1px solid rgba(255,255,255,.06);
+  }
+}

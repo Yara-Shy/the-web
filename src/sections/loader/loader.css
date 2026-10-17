@@ -1,0 +1,12 @@
+#loader {
+  position: fixed; inset: 0; z-index: 2000; background: #000;
+  display: flex; align-items: center; justify-content: center;
+  flex-direction: column; gap: 1.8rem;
+  transition: opacity .8s var(--ease), visibility .8s;
+}
+#loader.hide { opacity: 0; visibility: hidden; pointer-events: none; }
+.loader-logo { font-family: 'DM Mono', monospace; font-size: calc(.75rem + var(--text-grow)); letter-spacing: .2em; text-transform: uppercase; color: rgba(255,255,255,.35); }
+.loader-logo em { color: var(--c1); font-style: normal; }
+.loader-track { width: 180px; height: 1px; background: rgba(255,255,255,.1); position: relative; overflow: hidden; }
+.loader-bar { position: absolute; top: 0; left: 0; height: 100%; width: 0; background: var(--c2); }
+.loader-pct { font-size: calc(.62rem + var(--text-grow)); letter-spacing: .22em; color: rgba(255,255,255,.22); }

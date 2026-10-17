@@ -1,0 +1,85 @@
+#s-home-wrapper {
+  height: 300vh;
+  position: relative;
+  z-index: 10;
+  overflow-x: clip;
+}
+/* svh — висота з видимим адресним рядком; не змінюється, коли мобільний
+   браузер ховає/показує його під час скролу, тож hero не перебудовується
+   під пальцем. vh — фолбек для браузерів без svh. */
+@media (max-width: 768px) {
+  /* На мобільних hero показується одразу (без анімації наближення),
+     тож не потрібен весь 300vh запас — лишаємо трохи для preZoom-переходу
+     камери в спіраль (home.js: wrapP > 0.75), а решту "мертвого" скролу прибираємо. */
+  #s-home-wrapper { height: 112vh; height: 112svh; }
+}
+#s-home {
+  position: sticky; top: 0;
+  height: 100vh; height: 100svh; min-height: unset;
+  display: flex; flex-direction: column; justify-content: center;
+  padding: 0 2.8rem; padding-top: 6vh;
+}
+
+.hero-reveal { opacity: 0; transform: translateY(22px); transition: opacity .9s var(--ease), transform .9s var(--ease); }
+.hero-reveal.show { opacity: 1; transform: translateY(0); }
+
+.hero-name {
+  font-family: "pacaembu", sans-serif;
+  font-size: clamp(2.25rem, 7vw, 7rem);
+  font-weight: 700; line-height: .85; letter-spacing: .04em;
+  margin-bottom: 2rem;
+}
+.hero-name .line { display: block; }
+
+.hero-sub { margin-top: 1.8rem; font-size: var(--text-body); line-height: 1.85; color: var(--cm); max-width: 460px; }
+
+.cta-row { display: flex; gap: 1rem; margin-top: 2.4rem; }
+
+#scroll-cue {
+  position: fixed; bottom: 2.8rem; left: 50%; transform: translateX(-50%);
+  z-index: 50; display: flex; flex-direction: column; align-items: center; gap: .6rem;
+  opacity: 0; transition: opacity 1s ease; pointer-events: none;
+}
+#scroll-cue.show { opacity: 1; }
+#scroll-cue.gone { opacity: 0; transition: opacity .4s ease; }
+@media (max-width: 768px) {
+  #scroll-cue { display: none; }
+}
+.cue-text { font-size: calc(.95rem + var(--text-grow)); letter-spacing: .22em; text-transform: uppercase; color: rgba(255,255,255,.6); }
+.cue-arrow {
+  width: 1px; height: 28px;
+  background: linear-gradient(to bottom, rgba(0,229,255,.6), transparent);
+  animation: cue-pulse 2s ease-in-out infinite;
+}
+@keyframes cue-pulse { 0%, 100% { opacity: .3; } 50% { opacity: 1; } }
+
+@media (max-width: 768px) {
+  #s-home {
+    padding-left: 1.4rem;
+    padding-right: 1.4rem;
+    justify-content: center;
+  }
+  .hero-left {
+    width: 100%;
+    max-width: calc(100vw - 2.8rem);
+  }
+  .hero-name {
+    font-family: "pacaembu", sans-serif;
+    font-size: clamp(3.4rem, 16.5vw, 5.7rem);
+    font-weight: 700; line-height: .85; letter-spacing: .04em;
+    margin-bottom: 1.2rem;
+    overflow-wrap: anywhere;
+  }
+  .hero-sub {
+    max-width: 100%;
+    font-size: calc(.95rem + var(--text-grow) * 0.4);
+    line-height: 1.6;
+    word-break: break-word;
+    color: #fff;
+  }
+  .cta-row {
+    flex-wrap: nowrap;
+    gap: clamp(1rem, 4.2vw, 1.6rem);
+    width: 100%;
+  }
+}
