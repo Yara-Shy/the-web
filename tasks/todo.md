@@ -146,3 +146,9 @@
 - [x] Причина: `wrapP` у home.js рахувався як `-top / (wrapper.height - innerHeight)`. На мобільному wrapper = 112svh, тож хід лише ~12svh, а innerHeight змінюється на висоту адресного рядка (~80px) — wrapP на тій самій позиції скакав між ~0.44 і 1, перемикаючи ріст сфери (`wrapP > 0.875`) туди-сюди.
 - [x] Фікс: хід sticky-hero = `wrapper.height - hero.height` (hero = 100svh/100vh) — не залежить від адресного рядка; на десктопі hero = innerHeight, поведінка та сама.
 - [x] Перевірка: behaviour.mjs 19/19.
+
+## Fix 4: сайт «обрізаний» згори й знизу (iOS 26 Safari)
+
+- [x] Причина: iOS 26 Safari фарбує зони адресного рядка й нижньої панелі кольором fixed-елементів біля країв екрана (background-color / backdrop-filter), ігноруючи opacity:0 і visibility:hidden — рахується лише display:none. Схований чорний `#loader` і закритий `.zoom-overlay` (fixed, inset:0) лишались «присутніми» → суцільні чорні смуги.
+- [x] Фікс: обидва після fade-out отримують display:none (`transition-behavior: allow-discrete`, для fade-in оверлея — `@starting-style`). Анімації ті самі.
+- [x] Перевірка: fixed-probe.mjs (display none після згасання, fade-in/out як раніше — порівняно зі старим CSS), behaviour.mjs 19/19. Остаточно — на реальному iPhone.

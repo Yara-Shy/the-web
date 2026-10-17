@@ -2,9 +2,13 @@
   position: fixed; inset: 0; z-index: 2000; background: #000;
   display: flex; align-items: center; justify-content: center;
   flex-direction: column; gap: 1.8rem;
-  transition: opacity .8s var(--ease), visibility .8s;
+  transition: opacity .8s var(--ease), visibility .8s, display .8s;
+  transition-behavior: allow-discrete;
 }
-#loader.hide { opacity: 0; visibility: hidden; pointer-events: none; }
+/* display:none після fade-out: iOS 26 Safari бере колір fixed-елементів біля країв
+   екрана для тла адресного рядка й нижньої панелі — навіть з opacity:0/visibility:hidden.
+   Схований, але присутній чорний лоадер заливав ці зони чорним і «обрізав» сайт. */
+#loader.hide { opacity: 0; visibility: hidden; pointer-events: none; display: none; }
 .loader-logo { font-family: 'DM Mono', monospace; font-size: calc(.75rem + var(--text-grow)); letter-spacing: .2em; text-transform: uppercase; color: rgba(255,255,255,.35); }
 .loader-logo em { color: var(--c1); font-style: normal; }
 .loader-track { width: 180px; height: 1px; background: rgba(255,255,255,.1); position: relative; overflow: hidden; }

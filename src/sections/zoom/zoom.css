@@ -4,17 +4,23 @@
   background: rgba(0,0,0,0.6);
   backdrop-filter: blur(10px);
   -webkit-backdrop-filter: blur(10px);
-  display: flex;
+  /* Закритий оверлей — display:none (після fade-out), а не лише opacity/visibility:
+     iOS 26 Safari бере його темне тло/backdrop-filter для зон адресного рядка й
+     нижньої панелі (сайт виглядав обрізаним), а повноекранні backdrop-filter шари
+     зайво лишалися б у композиції над WebGL-фоном. */
+  display: none;
   align-items: center;
   justify-content: center;
   padding: 3vh 3vw;
   opacity: 0; pointer-events: none;
-  /* Закритий оверлей ховаємо й через visibility (після fade-out): інакше його
-     повноекранні backdrop-filter шари лишаються в композиції над WebGL-фоном. */
-  visibility: hidden;
-  transition: opacity .5s var(--ease), visibility 0s linear .5s;
+  transition: opacity .5s var(--ease), display .5s;
+  transition-behavior: allow-discrete;
 }
-.zoom-overlay.open { opacity: 1; pointer-events: all; visibility: visible; transition: opacity .5s var(--ease); }
+.zoom-overlay.open { display: flex; opacity: 1; pointer-events: all; }
+/* Стартові значення для fade-in із display:none. */
+@starting-style {
+  .zoom-overlay.open { opacity: 0; }
+}
 
 /* внутрішній контейнер */
 .zoom-inner {
