@@ -14,7 +14,13 @@
     flex-direction: column;
     gap: 5rem;
     transform: none;
+    /* Без 3D-контексту: інакше кожна картка/фото/підпис стає окремим шаром GPU. */
+    transform-style: flat;
   }
+  /* У лінійному списку картки статичні — will-change (для 3D-спіралі) лише
+     плодив би великі композитні шари з тінями на мобільному GPU. */
+  .spiral.linear-list .card,
+  .spiral.linear-list .card-photo { will-change: auto; }
   .spiral.linear-list .card {
     position: relative !important;
     left: auto !important;

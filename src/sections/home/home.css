@@ -16,6 +16,9 @@
 #s-home {
   position: sticky; top: 0;
   height: 100vh; height: 100svh; min-height: unset;
+  /* Постійний власний шар: без нього hero композитується лише «через перекриття»,
+     браузер перебудовує цей шар під час скролу, і текст дрібно тремтить. */
+  will-change: transform;
   display: flex; flex-direction: column; justify-content: center;
   padding: 0 2.8rem; padding-top: 6vh;
 }

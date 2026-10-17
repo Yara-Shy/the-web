@@ -9,9 +9,12 @@
   justify-content: center;
   padding: 3vh 3vw;
   opacity: 0; pointer-events: none;
-  transition: opacity .5s var(--ease);
+  /* Закритий оверлей ховаємо й через visibility (після fade-out): інакше його
+     повноекранні backdrop-filter шари лишаються в композиції над WebGL-фоном. */
+  visibility: hidden;
+  transition: opacity .5s var(--ease), visibility 0s linear .5s;
 }
-.zoom-overlay.open { opacity: 1; pointer-events: all; }
+.zoom-overlay.open { opacity: 1; pointer-events: all; visibility: visible; transition: opacity .5s var(--ease); }
 
 /* внутрішній контейнер */
 .zoom-inner {
