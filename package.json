@@ -1,0 +1,18 @@
+{
+  "name": "yara-shylyk-site",
+  "private": true,
+  "type": "module",
+  "description": "Static site, no build step. These dev dependencies are only for the offline tooling in scripts/.",
+  "scripts": {
+    "vendor": "node scripts/vendor.mjs",
+    "media": "node scripts/encode-media.mjs",
+    "poster": "node scripts/capture-hero-poster.mjs",
+    "serve": "python -m http.server 8080 --bind 127.0.0.1"
+  },
+  "devDependencies": {
+    "@fontsource/dm-mono": "5.1.0",
+    "embla-carousel": "8.5.2",
+    "playwright-core": "1.48.2",
+    "three": "0.162.0"
+  }
+}
