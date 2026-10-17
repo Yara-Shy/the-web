@@ -16,6 +16,7 @@ const HERO_HIDE_AT = 0.48;
    ───────────────────────────────────────────── */
 export function mount(wrapper, { loop, background }) {
   const isMobile = IS_MOBILE_DEVICE;
+  const heroEl = document.getElementById('s-home');
   const spiralEl = document.getElementById('spiral');
   const scrollCue = document.getElementById('scroll-cue');
   const reveals = wrapper.querySelectorAll('.hero-reveal');
@@ -53,6 +54,7 @@ export function mount(wrapper, { loop, background }) {
     introReady = true;
     // Кешуємо rect'и після того як loader зник
     cacheRect(wrapper);
+    cacheRect(heroEl);
     cacheRect(spiralEl);
     // На мобільних одразу показуємо hero — пропускаємо наближення
     // сфери й вибух на самому початку скролу.
@@ -63,8 +65,11 @@ export function mount(wrapper, { loop, background }) {
     const vh = stableViewportHeight();
     scrollState.scrollY = window.scrollY;
 
+    // Хід sticky-hero = висота wrapper мінус висота самого hero (100svh), а не
+    // мінус innerHeight: той стрибає з адресним рядком, і на короткому мобільному
+    // wrapper (112svh) wrapP біля верху сторінки скакав майже вдвічі — сфера смикалась.
     const wrapRect   = getCachedRect(wrapper);
-    const wrapScroll = wrapRect.height - vh;
+    const wrapScroll = wrapRect.height - getCachedRect(heroEl).height;
     scrollState.wrapP = wrapScroll > 0
       ? Math.max(0, Math.min(1, -wrapRect.top / wrapScroll))
       : 0;
@@ -96,7 +101,7 @@ export function mount(wrapper, { loop, background }) {
     // повз #s-home-wrapper одразу в spiral, і hero ніколи б не показався.
     if (!isMobile && !heroRevealed && wrapP >= HERO_SHOW_AT) {
       const rect = wrapper.getBoundingClientRect();
-      const wrapScrollTotal = rect.height - stableViewportHeight();
+      const wrapScrollTotal = rect.height - heroEl.offsetHeight;
       if (wrapScrollTotal > 0) {
         // Якщо скрол проскочив далі за момент появи hero (швидкий флік) —
         // повертаємо користувача рівно на цю позицію.
